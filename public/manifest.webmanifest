@@ -1,0 +1,10 @@
+{
+  "name": "What The Fuss?!",
+  "short_name": "WTF",
+  "description": "A parenting chat that gives real answers, not Google sludge.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF5EE",
+  "theme_color": "#FAF5EE",
+  "icons": []
+}

@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+html, body {
+  background: #FAF5EE;
+  color: #2A1A2A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbar but keep scroll */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Composer text input — strip default styles */
+.wtf-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  color: #2A1A2A;
+}
+.wtf-input::placeholder { color: #A89098; }
+
+/* Voice mode breathing rings */
+.breathe-ring {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+/* Markdown-ish in messages */
+.msg-content p { margin: 0 0 8px; }
+.msg-content p:last-child { margin-bottom: 0; }
+.msg-content strong { font-weight: 500; color: #2A1A2A; }
+.msg-content ul, .msg-content ol { padding-left: 18px; margin: 4px 0 8px; }
+.msg-content li { margin: 2px 0; }
+.msg-content code { background: #F2E0E8; color: #5A2A45; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
