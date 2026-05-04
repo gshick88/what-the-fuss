@@ -10,7 +10,7 @@ export default function Header({ baby, back, title, right }) {
 
   return (
     <header className="sticky top-0 z-20 bg-wtf-bg/90 backdrop-blur border-b border-wtf-border/60">
-      <div className="max-w-2xl mx-auto px-4 h-12 flex items-center gap-2">
+      <div className="max-w-md md:max-w-lg mx-auto px-4 h-14 flex items-center gap-2">
         {back ? (
           <button
             onClick={() => router.back()}

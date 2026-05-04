@@ -40,7 +40,7 @@ export default function HomePage() {
       <Header
         baby={baby}
         right={
-          <button onClick={() => setSidebarOpen(true)} className="p-2 -mr-2 text-wtf-text-2" aria-label="Menu">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 -mr-2 text-wtf-text-2 hover:text-wtf-text" aria-label="Menu">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -49,23 +49,35 @@ export default function HomePage() {
       />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-4 pt-6 pb-4">
-        {!baby && (
-          <button
-            onClick={() => router.push('/setup')}
-            className="mb-4 text-left bg-wtf-honey-soft border border-wtf-honey/40 rounded-wtf p-3 active:scale-[0.99]"
-          >
-            <div className="text-[12px] font-medium text-[#854F0B]">First time? Set up the baby profile.</div>
-            <div className="text-[11px] text-[#854F0B]/80 mt-0.5">30 seconds. Makes every answer 10× better.</div>
-          </button>
-        )}
-
+      <main className="flex-1 flex flex-col w-full mx-auto px-4 pt-6 pb-4 max-w-md md:max-w-lg">
         <div className="mb-5">
-          <h1 className="text-[26px] font-medium text-wtf-text tracking-tight leading-tight">What's the fuss?</h1>
-          <p className="text-[13px] text-wtf-text-3 mt-1.5 leading-relaxed">
+          <h1 className="text-[28px] md:text-[32px] font-medium text-wtf-text tracking-tight leading-[1.1]">
+            What's the fuss?
+          </h1>
+          <p className="text-[13px] md:text-[14px] text-wtf-text-3 mt-2 leading-relaxed">
             Ask anything. No question is too small or too gross. We've heard worse.
           </p>
         </div>
+
+        {!baby && (
+          <button
+            onClick={() => router.push('/setup')}
+            className="mb-4 text-left bg-wtf-berry-soft border border-wtf-berry/20 rounded-wtf-lg p-3.5 active:scale-[0.99] hover:bg-wtf-berry-soft/80 transition-colors flex items-center gap-3"
+          >
+            <div className="w-8 h-8 rounded-full bg-wtf-berry flex items-center justify-center shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-wtf-berry-dark">Set up the baby profile.</div>
+              <div className="text-[11px] text-wtf-berry-dark/75 mt-0.5">30 seconds. Makes every answer 10× better.</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-wtf-berry-dark/60 shrink-0">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        )}
 
         <div className="grid grid-cols-2 gap-2 mb-6">
           {TOPICS.map((t) => (
@@ -73,14 +85,14 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-auto pt-6">
           <Composer
             value={text}
             onChange={setText}
             onSend={(payload) => startConversation(payload)}
             placeholder={baby?.name ? `Ask about ${baby.name}...` : 'Ask anything...'}
           />
-          <div className="text-[10px] text-wtf-muted text-center mt-2 leading-relaxed">
+          <div className="text-[10px] text-wtf-muted text-center mt-2.5 leading-relaxed">
             Tap mic for hands-free · attach a photo for rashes, poop, anything visual
           </div>
         </div>
