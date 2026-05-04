@@ -112,8 +112,22 @@ Edit `SYSTEM_PROMPT` in that file to tune behavior.
 1. **Supabase backend** for real shared state. Tables: `babies`, `conversations`, `messages`, `saved_cards`, `members`. Use Supabase Auth for the magic-link login. Replace `lib/storage.js` with a Supabase client wrapper — pages don't need to change much.
 2. **Streaming responses** from Claude. Switch the `/api/chat` route to return a `ReadableStream` and stream tokens to the chat page.
 3. **PWA install** — add icons to `/public`, register a service worker, prompt to install on iOS/Android.
-4. **Better TTS.** Web Speech voice quality is rough. Swap in OpenAI TTS or ElevenLabs server-side for the voice mode replies.
+4. **Premium voice (OpenAI TTS or ElevenLabs).** Web Speech voices are okay but not great. To upgrade:
+   - Add `OPENAI_API_KEY` env var
+   - Create `app/api/tts/route.js` that POSTs to `https://api.openai.com/v1/audio/speech` with `{ model: 'tts-1', voice: 'nova', input: text }`
+   - In `app/voice/page.jsx`'s `speak()`, fetch the audio and play it via `new Audio(URL.createObjectURL(blob))` instead of `SpeechSynthesisUtterance`
+   - "nova" or "shimmer" are the warmest voices. Cost: ~$0.015 per 1k chars (~$0.003 per typical reply).
 5. **Doctor moment cards.** Detect when a conversation crosses a pediatric red line and surface a structured action card with "call now / what to watch for / send summary".
+
+## Theming
+
+Dark mode is wired via CSS variables and Tailwind's `class` strategy:
+- Tokens defined in `app/globals.css` under `:root` (light) and `.dark` (dark)
+- `tailwind.config.js` references CSS variables instead of hex values
+- Toggle lives in the sidebar; choice persists in `localStorage` under `wtf:theme`
+- An inline bootstrap script in `app/layout.jsx` applies the saved theme before React hydrates so there's no flash
+
+To tune dark colors, edit the `.dark` block in `app/globals.css`. Everything that uses `bg-wtf-*`, `text-wtf-*`, or `border-wtf-*` swaps automatically.
 
 ## Editing the personality
 

@@ -2,29 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light theme (Berry Bowl) */
+:root {
+  --wtf-bg:           #FAF5EE;
+  --wtf-card:         #FFFFFF;
+  --wtf-text:         #2A1A2A;
+  --wtf-text-2:       #5A3A4A;
+  --wtf-text-3:       #7A5A6A;
+  --wtf-muted:        #A89098;
+  --wtf-border:       #E8DDD8;
+  --wtf-border-warm:  #D8C8D0;
+  --wtf-berry:        #7A3A5A;
+  --wtf-berry-dark:   #5A2A45;
+  --wtf-berry-soft:   #F2E0E8;
+  --wtf-honey:        #E8A030;
+  --wtf-honey-soft:   #FBEBD2;
+  --wtf-sage:         #88A87A;
+  --wtf-sage-soft:    #E8F0E0;
+  --wtf-danger:       #A32D2D;
+  --wtf-danger-soft:  #FCEBEB;
+}
+
+/* Dark theme — same brand language, inverted */
+.dark {
+  --wtf-bg:           #1A0F18;
+  --wtf-card:         #261A24;
+  --wtf-text:         #F5EDE5;
+  --wtf-text-2:       #D8C8D0;
+  --wtf-text-3:       #A89098;
+  --wtf-muted:        #7A5A6A;
+  --wtf-border:       #3A2A38;
+  --wtf-border-warm:  #4A3A48;
+  --wtf-berry:        #C77398;
+  --wtf-berry-dark:   #E89AB4;
+  --wtf-berry-soft:   #3A1F30;
+  --wtf-honey:        #F2C84B;
+  --wtf-honey-soft:   #3A2A14;
+  --wtf-sage:         #A8C898;
+  --wtf-sage-soft:    #1F2E18;
+  --wtf-danger:       #E26060;
+  --wtf-danger-soft:  #3A1818;
+}
+
 html, body {
-  background: #FAF5EE;
-  color: #2A1A2A;
+  background: var(--wtf-bg);
+  color: var(--wtf-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
-/* Display headlines — slight optical-size tuning for big sizes */
+/* Display headlines */
 .font-display {
   font-feature-settings: 'ss01' on, 'ss02' on;
   letter-spacing: -0.02em;
 }
 
-* {
-  -webkit-tap-highlight-color: transparent;
-}
+* { -webkit-tap-highlight-color: transparent; }
 
-/* Hide scrollbar but keep scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Composer text input — strip default styles */
 .wtf-input {
   background: transparent;
   border: none;
@@ -33,19 +71,17 @@ html, body {
   width: 100%;
   font-family: inherit;
   font-size: 14px;
-  color: #2A1A2A;
+  color: var(--wtf-text);
 }
-.wtf-input::placeholder { color: #A89098; }
+.wtf-input::placeholder { color: var(--wtf-muted); }
 
-/* Voice mode breathing rings */
 .breathe-ring {
   animation: breathe 3s ease-in-out infinite;
 }
 
-/* Markdown-ish in messages */
 .msg-content p { margin: 0 0 8px; }
 .msg-content p:last-child { margin-bottom: 0; }
-.msg-content strong { font-weight: 500; color: #2A1A2A; }
+.msg-content strong { font-weight: 500; color: var(--wtf-text); }
 .msg-content ul, .msg-content ol { padding-left: 18px; margin: 4px 0 8px; }
 .msg-content li { margin: 2px 0; }
-.msg-content code { background: #F2E0E8; color: #5A2A45; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.msg-content code { background: var(--wtf-berry-soft); color: var(--wtf-berry-dark); padding: 1px 5px; border-radius: 4px; font-size: 12px; }

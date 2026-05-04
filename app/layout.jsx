@@ -1,5 +1,6 @@
 import './globals.css';
 import { Inter_Tight, Fraunces } from 'next/font/google';
+import { themeBootstrapScript } from '@/lib/theme';
 
 const interTight = Inter_Tight({
   subsets: ['latin'],
@@ -33,6 +34,9 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${interTight.variable} ${fraunces.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body className="bg-wtf-bg text-wtf-text font-sans">
         <div className="min-h-[100dvh] flex flex-col">
           {children}

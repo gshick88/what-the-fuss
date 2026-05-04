@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
@@ -7,27 +8,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Berry Bowl palette
+        // Berry Bowl tokens — values come from CSS variables in globals.css
+        // so they swap automatically between light and .dark themes.
         wtf: {
-          bg:        '#FAF5EE', // warm cream
-          card:      '#FFFFFF',
-          text:      '#2A1A2A', // deep plum-black
-          'text-2':  '#5A3A4A',
-          'text-3':  '#7A5A6A',
-          muted:     '#A89098',
-          border:    '#E8DDD8',
-          'border-warm': '#D8C8D0',
-          berry:     '#7A3A5A', // primary
-          'berry-dark': '#5A2A45',
-          'berry-soft': '#F2E0E8',
-          honey:     '#E8A030', // secondary pop
-          'honey-soft': '#FBEBD2',
-          sage:      '#88A87A', // success/calm
-          'sage-soft': '#E8F0E0',
-          danger:    '#A32D2D',
-          'danger-soft': '#FCEBEB',
-          night:     '#14100D', // 3am mode bg
-          'night-2': '#241820',
+          bg:           'var(--wtf-bg)',
+          card:         'var(--wtf-card)',
+          text:         'var(--wtf-text)',
+          'text-2':     'var(--wtf-text-2)',
+          'text-3':     'var(--wtf-text-3)',
+          muted:        'var(--wtf-muted)',
+          border:       'var(--wtf-border)',
+          'border-warm':'var(--wtf-border-warm)',
+          berry:        'var(--wtf-berry)',
+          'berry-dark': 'var(--wtf-berry-dark)',
+          'berry-soft': 'var(--wtf-berry-soft)',
+          honey:        'var(--wtf-honey)',
+          'honey-soft': 'var(--wtf-honey-soft)',
+          sage:         'var(--wtf-sage)',
+          'sage-soft':  'var(--wtf-sage-soft)',
+          danger:       'var(--wtf-danger)',
+          'danger-soft':'var(--wtf-danger-soft)',
         },
       },
       fontFamily: {

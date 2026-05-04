@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { getConversations } from '@/lib/storage';
+import { useTheme } from '@/lib/theme';
 
 export default function Sidebar({ open, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
   const [convs, setConvs] = useState([]);
+  const { theme, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
     if (open) setConvs(getConversations());
@@ -50,9 +52,21 @@ export default function Sidebar({ open, onClose }) {
         </div>
 
         <div className="mt-auto flex flex-col gap-1">
-          <Link href="/saved" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-white/60">Saved cards</Link>
-          <Link href="/share" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-white/60">Add to the chat</Link>
-          <Link href="/setup" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-white/60">Baby profile</Link>
+          <Link href="/saved" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-wtf-card/60">Saved cards</Link>
+          <Link href="/share" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-wtf-card/60">Add to the chat</Link>
+          <Link href="/setup" onClick={onClose} className="text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-wtf-card/60">Baby profile</Link>
+
+          <button
+            onClick={toggleTheme}
+            className="mt-2 flex items-center justify-between text-[13px] text-wtf-text px-2 py-2 rounded-md hover:bg-wtf-card/60"
+          >
+            <span>Dark mode</span>
+            <span className={`relative w-9 h-5 rounded-full transition-colors ${theme === 'dark' ? 'bg-wtf-berry' : 'bg-wtf-border'}`}>
+              <span
+                className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-[18px]' : 'translate-x-0.5'}`}
+              />
+            </span>
+          </button>
         </div>
       </aside>
     </div>
