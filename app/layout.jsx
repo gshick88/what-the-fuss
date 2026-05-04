@@ -1,11 +1,11 @@
 import './globals.css';
-import { Inter_Tight, Fraunces } from 'next/font/google';
+import { Dongle, Fraunces } from 'next/font/google';
 import { themeBootstrapScript } from '@/lib/theme';
 
-const interTight = Inter_Tight({
+const dongle = Dongle({
   subsets: ['latin'],
   display: 'swap',
-  weight: ['400', '500', '600'],
+  weight: ['300', '400', '700'],
   variable: '--font-sans',
 });
 
@@ -33,7 +33,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${interTight.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${dongle.variable} ${fraunces.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
