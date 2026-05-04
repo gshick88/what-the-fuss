@@ -13,7 +13,7 @@ export default function SharePage() {
 
   return (
     <>
-      <Header baby={baby} back title="Add to the chat" />
+      <Header baby={baby} back title="Add to the chat" displayTitle />
 
       <main className="flex-1 flex flex-col max-w-md w-full mx-auto px-4 pt-3 pb-6">
         <p className="text-[12px] text-wtf-text-3 mb-4">

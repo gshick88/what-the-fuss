@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import BrandMark from './BrandMark';
 import { ageLabel } from '@/lib/storage';
 
-export default function Header({ baby, back, title, right }) {
+export default function Header({ baby, back, title, right, displayTitle }) {
   const router = useRouter();
 
   return (
@@ -26,7 +26,11 @@ export default function Header({ baby, back, title, right }) {
         )}
 
         <div className="flex-1 min-w-0">
-          {title && <div className="text-sm font-medium text-wtf-text truncate">{title}</div>}
+          {title && (
+            <div className={`${displayTitle ? 'font-display text-[17px]' : 'text-sm'} font-medium text-wtf-text truncate`}>
+              {title}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

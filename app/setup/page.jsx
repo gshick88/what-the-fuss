@@ -38,13 +38,13 @@ export default function SetupPage() {
 
   return (
     <>
-      <Header back title={step === 1 ? 'Tell us about them' : ''} />
+      <Header back title={step === 1 ? 'Tell us about them' : ''} displayTitle />
 
       <main className="flex-1 flex flex-col max-w-md w-full mx-auto px-5">
         {step === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
             <div className="w-12 h-12 bg-wtf-berry rounded-wtf-lg flex items-center justify-center text-white text-[22px] font-medium mb-5">?!</div>
-            <h1 className="text-[26px] font-medium text-wtf-text tracking-tight">Let's meet the boss.</h1>
+            <h1 className="font-display text-[32px] font-medium text-wtf-text leading-tight">Let's meet the <em className="italic">boss</em>.</h1>
             <p className="text-[13px] text-wtf-text-3 mt-3 max-w-[260px] leading-relaxed">
               30 seconds of setup so we can give you real answers, not Google sludge.
             </p>
@@ -148,7 +148,7 @@ export default function SetupPage() {
                 <path d="M5 12l5 5L20 7" />
               </svg>
             </div>
-            <h1 className="text-[22px] font-medium text-wtf-text tracking-tight">Got it.</h1>
+            <h1 className="font-display text-[28px] font-medium text-wtf-text leading-tight">Got it.</h1>
             <p className="text-[13px] text-wtf-text-3 mt-2 max-w-[260px] leading-relaxed">
               We've got {form.name || 'their'} stats. Every answer is shaped around them.
             </p>

@@ -51,8 +51,8 @@ export default function HomePage() {
 
       <main className="flex-1 flex flex-col w-full mx-auto px-4 pt-6 pb-4 max-w-md md:max-w-lg">
         <div className="mb-5">
-          <h1 className="text-[28px] md:text-[32px] font-medium text-wtf-text tracking-tight leading-[1.1]">
-            What's the fuss?
+          <h1 className="font-display text-[34px] md:text-[40px] font-medium text-wtf-text leading-[1.05]">
+            What's the <em className="italic">fuss</em>?
           </h1>
           <p className="text-[13px] md:text-[14px] text-wtf-text-3 mt-2 leading-relaxed">
             Ask anything. No question is too small or too gross. We've heard worse.

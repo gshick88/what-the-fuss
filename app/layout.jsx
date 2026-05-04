@@ -1,4 +1,20 @@
 import './globals.css';
+import { Inter_Tight, Fraunces } from 'next/font/google';
+
+const interTight = Inter_Tight({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600'],
+  variable: '--font-sans',
+});
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+});
 
 export const metadata = {
   title: 'What The Fuss?!',
@@ -16,8 +32,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="bg-wtf-bg text-wtf-text">
+    <html lang="en" className={`${interTight.variable} ${fraunces.variable}`}>
+      <body className="bg-wtf-bg text-wtf-text font-sans">
         <div className="min-h-[100dvh] flex flex-col">
           {children}
         </div>

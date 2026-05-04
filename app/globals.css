@@ -2,14 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
 html, body {
   background: #FAF5EE;
   color: #2A1A2A;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Display headlines — slight optical-size tuning for big sizes */
+.font-display {
+  font-feature-settings: 'ss01' on, 'ss02' on;
+  letter-spacing: -0.02em;
 }
 
 * {

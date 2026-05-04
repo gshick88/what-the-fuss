@@ -10,7 +10,7 @@ export default function BrandMark({ size = 22, showWord = true }) {
         ?!
       </div>
       {showWord && (
-        <span className="font-medium text-wtf-text tracking-tight" style={{ fontSize: 14 }}>
+        <span className="font-display font-medium text-wtf-text tracking-tight" style={{ fontSize: 16 }}>
           What The Fuss
         </span>
       )}

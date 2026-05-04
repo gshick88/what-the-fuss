@@ -53,7 +53,7 @@ export default function SavedPage() {
 
   return (
     <>
-      <Header baby={baby} back title="Saved" />
+      <Header baby={baby} back title="Saved" displayTitle />
 
       <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-4 pt-3 pb-6">
         <div className="text-[11px] text-wtf-text-3 mb-3">

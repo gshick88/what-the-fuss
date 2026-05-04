@@ -31,7 +31,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans:    ['var(--font-sans)', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
       },
       borderRadius: {
         'wtf-sm': '8px',
