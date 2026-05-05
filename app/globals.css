@@ -49,9 +49,12 @@ html, body {
   color: var(--wtf-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
-  /* Dongle is tall and rounded — a touch of letter-spacing helps it breathe */
+  /* Explicit 'Dongle' first so the direct Google Fonts <link> in layout.jsx
+     takes effect even if next/font's variable doesn't resolve. */
+  font-family: 'Dongle', var(--font-sans), system-ui, -apple-system, sans-serif;
   letter-spacing: 0.005em;
+  /* Bigger base — Dongle reads small at typical web sizes. */
+  font-size: 18px;
 }
 
 /* Dongle has no 500 weight, only 300/400/700. Tailwind's font-medium would
@@ -79,7 +82,7 @@ html, body {
   resize: none;
   width: 100%;
   font-family: inherit;
-  font-size: 17px;     /* Dongle reads small below this; 16+ also blocks iOS auto-zoom */
+  font-size: 22px;     /* big — Dongle */
   color: var(--wtf-text);
 }
 .wtf-input::placeholder { color: var(--wtf-muted); }
@@ -88,9 +91,9 @@ html, body {
   animation: breathe 3s ease-in-out infinite;
 }
 
-.msg-content p { margin: 0 0 8px; }
+.msg-content p { margin: 0 0 10px; }
 .msg-content p:last-child { margin-bottom: 0; }
-.msg-content strong { font-weight: 500; color: var(--wtf-text); }
-.msg-content ul, .msg-content ol { padding-left: 18px; margin: 4px 0 8px; }
-.msg-content li { margin: 2px 0; }
-.msg-content code { background: var(--wtf-berry-soft); color: var(--wtf-berry-dark); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.msg-content strong { font-weight: 700; color: var(--wtf-text); }
+.msg-content ul, .msg-content ol { padding-left: 22px; margin: 6px 0 10px; }
+.msg-content li { margin: 3px 0; }
+.msg-content code { background: var(--wtf-berry-soft); color: var(--wtf-berry-dark); padding: 1px 6px; border-radius: 4px; font-size: 16px; }

@@ -43,7 +43,7 @@ export default function MessageBubble({ message, onSaved }) {
           </div>
         )}
         {message.content && (
-          <div className="bg-wtf-berry text-white px-3.5 py-2.5 rounded-wtf-lg rounded-br-[4px] text-[18px] leading-snug whitespace-pre-wrap">
+          <div className="bg-wtf-berry text-white px-3.5 py-2.5 rounded-wtf-lg rounded-br-[4px] text-[22px] leading-snug whitespace-pre-wrap">
             {message.content}
           </div>
         )}
@@ -62,14 +62,14 @@ export default function MessageBubble({ message, onSaved }) {
 
   return (
     <div className="self-start max-w-[92%] animate-slide-up">
-      <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-4 py-3 text-[18px] leading-relaxed text-wtf-text msg-content">
+      <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-4 py-3 text-[22px] leading-relaxed text-wtf-text msg-content">
         {renderMarkdown(message.content)}
       </div>
       <div className="mt-2 flex gap-1.5 flex-wrap">
         <button
           onClick={handleSave}
           disabled={saved}
-          className={`text-[14px] px-3 py-1 rounded-full font-medium transition-colors ${saved ? 'bg-wtf-sage-soft text-[#3B6D11]' : 'bg-wtf-berry-soft text-wtf-berry-dark hover:bg-wtf-berry-soft/80'}`}
+          className={`text-[16px] px-3 py-1 rounded-full font-medium transition-colors ${saved ? 'bg-wtf-sage-soft text-[#3B6D11]' : 'bg-wtf-berry-soft text-wtf-berry-dark hover:bg-wtf-berry-soft/80'}`}
         >
           {saved ? 'Saved' : 'Save card'}
         </button>

@@ -10,7 +10,7 @@ export default function Header({ baby, back, title, right, displayTitle }) {
 
   return (
     <header className="sticky top-0 z-20 bg-wtf-bg/90 backdrop-blur border-b border-wtf-border/60">
-      <div className="max-w-md md:max-w-lg mx-auto px-4 h-14 flex items-center gap-2">
+      <div className="max-w-md md:max-w-lg mx-auto px-4 h-16 flex items-center gap-2">
         {back ? (
           <button
             onClick={() => router.back()}
@@ -27,7 +27,7 @@ export default function Header({ baby, back, title, right, displayTitle }) {
 
         <div className="flex-1 min-w-0">
           {title && (
-            <div className={`${displayTitle ? 'font-display text-[19px]' : 'text-[16px]'} font-medium text-wtf-text truncate`}>
+            <div className={`${displayTitle ? 'font-display text-[22px]' : 'text-[20px]'} font-medium text-wtf-text truncate`}>
               {title}
             </div>
           )}
@@ -38,14 +38,14 @@ export default function Header({ baby, back, title, right, displayTitle }) {
           {baby?.name && (
             <Link
               href="/setup"
-              className="text-[13px] px-3 py-1 rounded-full bg-wtf-berry-soft text-wtf-berry-dark font-medium"
+              className="text-[16px] px-3 py-1 rounded-full bg-wtf-berry-soft text-wtf-berry-dark font-medium"
             >
               {baby.name}{ageLabel(baby) ? ` · ${ageLabel(baby)}` : ''}
             </Link>
           )}
           <Link
             href="/setup"
-            className="w-8 h-8 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[14px] font-medium flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[16px] font-medium flex items-center justify-center"
             aria-label="Profile"
           >
             {baby?.name?.[0]?.toUpperCase() || '+'}

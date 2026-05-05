@@ -13,8 +13,8 @@ export default function TopicChip({ topic, onClick }) {
         <TopicIcon name={topic.icon} size={17} />
       </div>
       <div className="min-w-0">
-        <div className="text-[17px] font-medium text-wtf-text leading-tight">{topic.label}</div>
-        <div className="text-[13px] text-wtf-muted leading-tight mt-0.5 truncate">{topic.sub}</div>
+        <div className="text-[22px] font-medium text-wtf-text leading-tight">{topic.label}</div>
+        <div className="text-[16px] text-wtf-muted leading-tight mt-0.5 truncate">{topic.sub}</div>
       </div>
     </button>
   );

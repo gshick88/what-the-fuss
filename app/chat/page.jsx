@@ -103,7 +103,7 @@ function ChatInner() {
       <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-4 min-h-0">
         <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 flex flex-col gap-3 no-scrollbar">
           {conv.messages.length === 0 && (
-            <div className="text-center text-wtf-text-3 text-[16px] mt-10">
+            <div className="text-center text-wtf-text-3 text-[19px] mt-10">
               Ask anything. {baby?.name ? `${baby.name}'s` : 'Your baby\'s'} context is loaded.
             </div>
           )}
@@ -120,7 +120,7 @@ function ChatInner() {
             </div>
           )}
           {error && (
-            <div className="self-start max-w-[92%] bg-wtf-danger-soft border border-wtf-danger/30 rounded-wtf-lg p-3 text-[14px] text-wtf-danger">
+            <div className="self-start max-w-[92%] bg-wtf-danger-soft border border-wtf-danger/30 rounded-wtf-lg p-3 text-[17px] text-wtf-danger">
               {error}
             </div>
           )}

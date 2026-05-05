@@ -16,38 +16,38 @@ export default function SharePage() {
       <Header baby={baby} back title="Add to the chat" displayTitle />
 
       <main className="flex-1 flex flex-col max-w-md w-full mx-auto px-4 pt-3 pb-6">
-        <p className="text-[15px] text-wtf-text-3 mb-4">
+        <p className="text-[18px] text-wtf-text-3 mb-4">
           Co-parent, grandma, the friend who's done this before.
         </p>
 
-        <div className="bg-white border border-wtf-border rounded-wtf-lg p-3.5 mb-4">
-          <div className="text-[12px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">In the chat</div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[14px] font-medium flex items-center justify-center">
+        <div className="bg-white border border-wtf-border rounded-wtf-lg p-4 mb-4">
+          <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">In the chat</div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[16px] font-medium flex items-center justify-center">
               {baby?.name?.[0]?.toUpperCase() || 'Y'}
             </div>
             <div className="flex-1">
-              <div className="text-[15px] font-medium text-wtf-text">You</div>
-              <div className="text-[13px] text-wtf-text-3">solo for now</div>
+              <div className="text-[18px] font-medium text-wtf-text">You</div>
+              <div className="text-[16px] text-wtf-text-3">solo for now</div>
             </div>
           </div>
         </div>
 
-        <div className="bg-wtf-honey-soft border border-wtf-honey/40 rounded-wtf-lg p-3.5 mb-4">
-          <div className="text-[15px] font-medium text-[#854F0B] mb-1">Sharing is in the next version.</div>
-          <div className="text-[13px] text-[#854F0B]/85 leading-relaxed">
+        <div className="bg-wtf-honey-soft border border-wtf-honey/40 rounded-wtf-lg p-4 mb-4">
+          <div className="text-[18px] font-medium text-[#854F0B] mb-1">Sharing is in the next version.</div>
+          <div className="text-[16px] text-[#854F0B]/85 leading-relaxed">
             Real shared chat across devices needs a backend (Supabase, Vercel Postgres, etc). The UI is here so you can see how it'll feel — wiring it up is the next deploy.
           </div>
         </div>
 
-        <div className="text-[12px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">Coming soon</div>
+        <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">Coming soon</div>
         <div className="flex flex-col gap-2 opacity-60 pointer-events-none">
           <Stub icon="link" title="Copy invite link" sub="wtf.app/join/..." />
           <Stub icon="whatsapp" title="Send via WhatsApp" />
           <Stub icon="qr" title="Show QR code" />
         </div>
 
-        <div className="mt-auto pt-6 text-[13px] text-wtf-muted leading-relaxed">
+        <div className="mt-auto pt-6 text-[15px] text-wtf-muted leading-relaxed">
           Once shared, anyone you add will see the full chat history, ask their own questions, and save cards. You'll be able to remove them anytime.
         </div>
       </main>
@@ -70,8 +70,8 @@ function Stub({ icon, title, sub }) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[15px] font-medium text-wtf-text">{title}</div>
-        {sub && <div className="text-[13px] text-wtf-muted truncate">{sub}</div>}
+        <div className="text-[18px] font-medium text-wtf-text">{title}</div>
+        {sub && <div className="text-[16px] text-wtf-muted truncate">{sub}</div>}
       </div>
     </div>
   );

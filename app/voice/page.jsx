@@ -358,10 +358,10 @@ export default function VoicePage() {
     return (
       <div className="fixed inset-0 bg-wtf-bg text-wtf-text flex flex-col items-center justify-center px-6">
         {audioEl}
-        <div className="font-display text-[38px] text-wtf-text leading-tight text-center">
+        <div className="font-display text-[46px] text-wtf-text leading-tight text-center">
           Talk it <em className="italic">out</em>.
         </div>
-        <p className="text-[16px] text-wtf-text-3 text-center mt-3 max-w-[320px] leading-relaxed">
+        <p className="text-[20px] text-wtf-text-3 text-center mt-3 max-w-[340px] leading-relaxed">
           Hands-free conversation. Tap the orb, ask anything, get a real answer back.
         </p>
 
@@ -382,19 +382,19 @@ export default function VoicePage() {
           </svg>
         </button>
 
-        <div className="mt-10 text-[14px] text-wtf-muted text-center max-w-[300px] leading-relaxed">
+        <div className="mt-10 text-[17px] text-wtf-muted text-center max-w-[320px] leading-relaxed">
           We'll need mic access. The first tap unlocks audio.
         </div>
 
         <button
           onClick={() => router.back()}
-          className="absolute top-5 right-5 text-[14px] text-wtf-text-3 px-3 py-1.5"
+          className="absolute top-5 right-5 text-[16px] text-wtf-text-3 px-3 py-1.5"
         >
           Back
         </button>
 
         {error && (
-          <div className="absolute bottom-8 left-5 right-5 text-center text-[14px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
+          <div className="absolute bottom-8 left-5 right-5 text-center text-[16px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
             {error}
           </div>
         )}
@@ -406,8 +406,8 @@ export default function VoicePage() {
   return (
     <div className="fixed inset-0 bg-wtf-bg text-wtf-text flex flex-col">
       {audioEl}
-      <div className="flex justify-between items-center px-5 pt-6 text-[12px] uppercase tracking-[0.08em] text-wtf-text-3 font-medium">
-        <span className="font-display normal-case tracking-normal text-[16px] text-wtf-text">Voice</span>
+      <div className="flex justify-between items-center px-5 pt-6 text-[14px] uppercase tracking-[0.08em] text-wtf-text-3 font-medium">
+        <span className="font-display normal-case tracking-normal text-[20px] text-wtf-text">Voice</span>
         <span>{elapsed}</span>
       </div>
 
@@ -425,27 +425,27 @@ export default function VoicePage() {
           </svg>
         </div>
 
-        <div className="text-[13px] text-wtf-text-3 uppercase tracking-wider">{stateLabel}</div>
+        <div className="text-[15px] text-wtf-text-3 uppercase tracking-wider">{stateLabel}</div>
 
         <div className="text-center max-w-md w-full px-2">
           {transcript && state !== 'speaking' && (
-            <div className="font-display text-[22px] text-wtf-text leading-relaxed italic">
+            <div className="font-display text-[26px] text-wtf-text leading-relaxed italic">
               "{transcript}"
             </div>
           )}
           {state === 'speaking' && reply && (
-            <div className="text-[17px] text-wtf-text leading-relaxed">
+            <div className="text-[20px] text-wtf-text leading-relaxed">
               {reply}
             </div>
           )}
           {state === 'listening' && !transcript && (
-            <div className="text-[15px] text-wtf-muted">I'm listening. Just talk.</div>
+            <div className="text-[18px] text-wtf-muted">I'm listening. Just talk.</div>
           )}
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 mb-2 text-center text-[14px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
+        <div className="mx-5 mb-2 text-center text-[16px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
           {error}
         </div>
       )}
@@ -481,7 +481,7 @@ export default function VoicePage() {
           </svg>
         </button>
       </div>
-      <div className="text-[12px] text-wtf-muted text-center pb-4 -mt-3">Pause · type · end</div>
+      <div className="text-[14px] text-wtf-muted text-center pb-4 -mt-3">Pause · type · end</div>
     </div>
   );
 }
