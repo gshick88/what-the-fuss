@@ -27,7 +27,7 @@ export default function Header({ baby, back, title, right, displayTitle }) {
 
         <div className="flex-1 min-w-0">
           {title && (
-            <div className={`${displayTitle ? 'font-display text-[17px]' : 'text-sm'} font-medium text-wtf-text truncate`}>
+            <div className={`${displayTitle ? 'font-display text-[19px]' : 'text-[16px]'} font-medium text-wtf-text truncate`}>
               {title}
             </div>
           )}
@@ -38,14 +38,14 @@ export default function Header({ baby, back, title, right, displayTitle }) {
           {baby?.name && (
             <Link
               href="/setup"
-              className="text-[11px] px-2.5 py-1 rounded-full bg-wtf-berry-soft text-wtf-berry-dark font-medium"
+              className="text-[13px] px-3 py-1 rounded-full bg-wtf-berry-soft text-wtf-berry-dark font-medium"
             >
               {baby.name}{ageLabel(baby) ? ` · ${ageLabel(baby)}` : ''}
             </Link>
           )}
           <Link
             href="/setup"
-            className="w-7 h-7 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[11px] font-medium flex items-center justify-center"
+            className="w-8 h-8 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[14px] font-medium flex items-center justify-center"
             aria-label="Profile"
           >
             {baby?.name?.[0]?.toUpperCase() || '+'}

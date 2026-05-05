@@ -64,8 +64,8 @@ export default function Composer({ value, onChange, onSend, placeholder = 'Ask a
       {imagePreview && (
         <div className="mb-2 flex items-center gap-2 bg-white border border-wtf-border rounded-wtf p-2">
           <img src={imagePreview} alt="" className="w-12 h-12 rounded-md object-cover" />
-          <div className="text-[12px] text-wtf-text-2 flex-1">Photo attached</div>
-          <button onClick={clearImage} className="text-wtf-muted text-xs px-2">Remove</button>
+          <div className="text-[15px] text-wtf-text-2 flex-1">Photo attached</div>
+          <button onClick={clearImage} className="text-wtf-muted text-[13px] px-2">Remove</button>
         </div>
       )}
 

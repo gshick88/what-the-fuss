@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { getBaby, babyContextString, newConversation, upsertConversation } from '@/lib/storage';
 
 // Pick the warmest available female English voice on the user's device.
-// Quality varies wildly — iOS/macOS have premium "Samantha", "Karen", "Moira"
-// (the most grandmother-y), Chrome desktop has Google neural voices, etc.
+// iOS premium voices ("Moira", "Samantha", "Karen") are warmest. Chrome desktop
+// has Google neural voices which are decent but flatter.
 function pickWarmVoice() {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
@@ -14,38 +14,28 @@ function pickWarmVoice() {
 
   const en = voices.filter((v) => /^en/i.test(v.lang));
 
-  // Priority order — warmest, most mature female voices first.
   const preferred = [
-    'Moira',                          // iOS/macOS Irish English — gentle, warm
-    'Samantha',                       // iOS/macOS — warm, mature
-    'Tessa',                          // iOS South African — warm
-    'Karen',                          // iOS Australian — warm
-    'Allison',                        // iOS premium
-    'Ava',                            // iOS premium
-    'Susan',                          // iOS
-    'Joanna',                         // macOS
-    'Microsoft Hazel',                // Windows UK — warm
-    'Microsoft Zira',                 // Windows US
-    'Google UK English Female',
-    'Google US English',
+    'Moira', 'Samantha', 'Tessa', 'Karen', 'Allison', 'Ava', 'Susan',
+    'Joanna', 'Microsoft Hazel', 'Microsoft Zira',
+    'Google UK English Female', 'Google US English',
   ];
 
   for (const name of preferred) {
-    const v = en.find((v) => v.name.includes(name) || v.voiceURI?.includes(name));
+    const v = en.find((v) => v.name.includes(name) || (v.voiceURI || '').includes(name));
     if (v) return v;
   }
-
-  // Fallback: any voice whose name implies female
   const femalish = en.find((v) => /female|woman/i.test(v.name));
   if (femalish) return femalish;
-
   return en[0] || voices[0];
 }
 
-// State machine: 'idle' → 'listening' → 'thinking' → 'speaking' → back to 'listening'
 export default function VoicePage() {
   const router = useRouter();
-  const [state, setState] = useState('idle');
+
+  // Has the user tapped Start? (unlocks iOS audio + begins recognition)
+  const [started, setStarted] = useState(false);
+
+  const [state, setState] = useState('idle'); // idle | listening | thinking | speaking
   const [transcript, setTranscript] = useState('');
   const [reply, setReply] = useState('');
   const [error, setError] = useState(null);
@@ -56,6 +46,9 @@ export default function VoicePage() {
   const babyRef = useRef(null);
   const convRef = useRef(null);
   const voiceRef = useRef(null);
+  const watchdogRef = useRef(null);
+  const audioRef = useRef(null);              // <audio> element for OpenAI TTS playback
+  const ttsAvailableRef = useRef(true);       // flips false if /api/tts fails (no key)
   const startedAt = useRef(Date.now());
   const [elapsed, setElapsed] = useState('00:00');
 
@@ -64,7 +57,7 @@ export default function VoicePage() {
   useEffect(() => { stateRef.current = state; }, [state]);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
-  // Pre-load voices (Web Speech loads them async — voiceschanged fires when ready)
+  // Pre-load voices
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return;
     const update = () => { voiceRef.current = pickWarmVoice(); };
@@ -73,7 +66,10 @@ export default function VoicePage() {
     return () => window.speechSynthesis.removeEventListener('voiceschanged', update);
   }, []);
 
+  // Timer
   useEffect(() => {
+    if (!started) return;
+    startedAt.current = Date.now();
     const t = setInterval(() => {
       const s = Math.floor((Date.now() - startedAt.current) / 1000);
       const mm = String(Math.floor(s / 60)).padStart(2, '0');
@@ -81,14 +77,54 @@ export default function VoicePage() {
       setElapsed(`${mm}:${ss}`);
     }, 500);
     return () => clearInterval(t);
+  }, [started]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      try { recogRef.current?.abort(); } catch {}
+      try { window.speechSynthesis?.cancel(); } catch {}
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
+    };
   }, []);
 
-  useEffect(() => {
+  // Initialize the session — must be called from inside the Start button click
+  // so iOS Safari treats it as a user-gesture and audio synthesis unlocks.
+  function handleStart() {
+    setError(null);
+
+    // (1a) Unlock Web Speech TTS by speaking a silent utterance from the gesture.
+    // Without this, iOS Safari silently refuses every later speak() call.
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      try {
+        const unlock = new SpeechSynthesisUtterance(' ');
+        unlock.volume = 0;
+        unlock.rate = 1;
+        window.speechSynthesis.speak(unlock);
+      } catch {}
+    }
+
+    // (1b) Unlock <audio> playback so OpenAI TTS responses can autoplay later.
+    // Same iOS gesture rule — first .play() must come from a tap.
+    if (audioRef.current) {
+      try {
+        audioRef.current.muted = true;
+        const p = audioRef.current.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            try { audioRef.current.pause(); audioRef.current.muted = false; } catch {}
+          }).catch(() => {});
+        }
+      } catch {}
+    }
+
+    // (2) Initialize conversation + baby context
     babyRef.current = getBaby();
     const c = newConversation({ title: 'Voice mode' });
     upsertConversation(c);
     convRef.current = c;
 
+    // (3) Set up speech recognition
     const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (!SR) {
       setError("Voice mode needs Chrome, Edge, or Safari. Your browser doesn't support it.");
@@ -113,31 +149,30 @@ export default function VoicePage() {
     };
     recog.onerror = (e) => {
       if (e.error === 'no-speech' || e.error === 'aborted') return;
-      setError(`Mic error: ${e.error}`);
+      setError(`Mic: ${e.error}`);
     };
     recog.onend = () => {
       if (finalText.trim()) {
-        sendUtterance(finalText.trim());
+        const said = finalText.trim();
         finalText = '';
+        sendUtterance(said);
       } else if (!pausedRef.current && stateRef.current !== 'speaking' && stateRef.current !== 'thinking') {
         try { recog.start(); } catch {}
       }
     };
 
     recogRef.current = recog;
+    setStarted(true);
     setState('listening');
-    try { recog.start(); } catch {}
-
-    return () => {
-      try { recog.abort(); } catch {}
-      try { window.speechSynthesis?.cancel(); } catch {}
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try { recog.start(); } catch (e) {
+      setError('Could not start mic. Check permissions.');
+    }
+  }
 
   async function sendUtterance(text) {
     setState('thinking');
     setTranscript(text);
+    setReply('');
 
     const userMsg = { role: 'user', content: text, ts: Date.now() };
     messagesRef.current = [...messagesRef.current, userMsg];
@@ -154,7 +189,8 @@ export default function VoicePage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || `Server error (${res.status})`);
+      if (!data.reply) throw new Error('Empty reply from Claude.');
 
       const assistantMsg = { role: 'assistant', content: data.reply, ts: Date.now() };
       messagesRef.current = [...messagesRef.current, assistantMsg];
@@ -170,37 +206,106 @@ export default function VoicePage() {
     }
   }
 
-  function speak(text) {
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      setState('listening');
-      if (!pausedRef.current) try { recogRef.current?.start(); } catch {}
-      return;
-    }
+  // Two-tier TTS: try OpenAI's tts-1 (warm female "nova"), fall back to the
+  // browser's built-in Web Speech if the endpoint isn't configured or fails.
+  async function speak(text) {
     setState('speaking');
-    window.speechSynthesis.cancel();
 
     const clean = text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1');
-    const u = new SpeechSynthesisUtterance(clean);
 
-    // Apply our pre-selected warm voice if available
-    if (voiceRef.current) u.voice = voiceRef.current;
-
-    u.rate = 0.92;   // slightly slower — more grandmother, less news anchor
-    u.pitch = 1.05;  // a touch warmer
-    u.volume = 1;
-
-    u.onend = () => {
+    const finishAndListen = () => {
+      if (watchdogRef.current) {
+        clearTimeout(watchdogRef.current);
+        watchdogRef.current = null;
+      }
       setState('listening');
       if (!pausedRef.current) {
         setTranscript('');
         try { recogRef.current?.start(); } catch {}
       }
     };
-    u.onerror = () => {
-      setState('listening');
-      if (!pausedRef.current) try { recogRef.current?.start(); } catch {}
+
+    // Generic watchdog used by both paths
+    const startWatchdog = (ms) => {
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
+      watchdogRef.current = setTimeout(() => {
+        try { audioRef.current?.pause(); } catch {}
+        try { window.speechSynthesis?.cancel(); } catch {}
+        finishAndListen();
+      }, ms);
     };
-    window.speechSynthesis.speak(u);
+
+    // ---------- Path A: OpenAI TTS (premium voice) ----------
+    if (ttsAvailableRef.current) {
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text: clean }),
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+
+          const audio = audioRef.current || new Audio();
+          audio.src = url;
+          audio.muted = false;
+          audio.volume = 1;
+
+          // Watchdog: assume ~14 chars/sec at speed=0.95, plus 5s grace
+          startWatchdog(Math.min(120000, (clean.length / 14) * 1000 + 5000));
+
+          audio.onended = () => { URL.revokeObjectURL(url); finishAndListen(); };
+          audio.onerror = () => {
+            URL.revokeObjectURL(url);
+            // Audio playback failed — fall back to Web Speech
+            ttsAvailableRef.current = false; // don't try again this session
+            webSpeechSpeak(clean, finishAndListen, startWatchdog);
+          };
+
+          await audio.play();
+          return;
+        } else {
+          // Server returned an error — likely no API key. Don't try OpenAI again
+          // this session, fall through to Web Speech.
+          ttsAvailableRef.current = false;
+        }
+      } catch (e) {
+        // Network or other failure — fall through
+        ttsAvailableRef.current = false;
+      }
+    }
+
+    // ---------- Path B: Web Speech fallback ----------
+    webSpeechSpeak(clean, finishAndListen, startWatchdog);
+  }
+
+  function webSpeechSpeak(clean, finishAndListen, startWatchdog) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      finishAndListen();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const u = new SpeechSynthesisUtterance(clean);
+    if (!voiceRef.current) voiceRef.current = pickWarmVoice();
+    if (voiceRef.current) u.voice = voiceRef.current;
+    u.rate = 0.92;
+    u.pitch = 1.05;
+    u.volume = 1;
+
+    u.onend = finishAndListen;
+    u.onerror = () => finishAndListen();
+
+    startWatchdog(Math.min(60000, (clean.length / 10) * 1000 + 4000));
+
+    try {
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      finishAndListen();
+    }
   }
 
   function togglePause() {
@@ -212,6 +317,7 @@ export default function VoicePage() {
       setPaused(true);
       try { recogRef.current?.abort(); } catch {}
       try { window.speechSynthesis?.cancel(); } catch {}
+      if (watchdogRef.current) { clearTimeout(watchdogRef.current); watchdogRef.current = null; }
       setState('idle');
     }
   }
@@ -219,6 +325,7 @@ export default function VoicePage() {
   function endSession() {
     try { recogRef.current?.abort(); } catch {}
     try { window.speechSynthesis?.cancel(); } catch {}
+    if (watchdogRef.current) clearTimeout(watchdogRef.current);
     if (convRef.current?.messages?.length) {
       router.replace(`/chat?id=${convRef.current.id}`);
     } else {
@@ -233,7 +340,6 @@ export default function VoicePage() {
     speaking: 'Talking',
   }[state];
 
-  // Orb gradient shifts color with state, but always uses palette tokens.
   const orbStyle = {
     background:
       state === 'thinking'
@@ -243,14 +349,69 @@ export default function VoicePage() {
         : 'radial-gradient(circle, var(--wtf-berry) 0%, var(--wtf-berry-dark) 70%, transparent 100%)',
   };
 
+  // Hidden audio element used by OpenAI TTS playback. Lives outside the
+  // conditional render so we can ref it from handleStart for the gesture unlock.
+  const audioEl = <audio ref={audioRef} preload="auto" className="hidden" />;
+
+  // ============== START SCREEN (before user tap) ==============
+  if (!started) {
+    return (
+      <div className="fixed inset-0 bg-wtf-bg text-wtf-text flex flex-col items-center justify-center px-6">
+        {audioEl}
+        <div className="font-display text-[38px] text-wtf-text leading-tight text-center">
+          Talk it <em className="italic">out</em>.
+        </div>
+        <p className="text-[16px] text-wtf-text-3 text-center mt-3 max-w-[320px] leading-relaxed">
+          Hands-free conversation. Tap the orb, ask anything, get a real answer back.
+        </p>
+
+        <button
+          onClick={handleStart}
+          className="mt-10 relative w-44 h-44 flex items-center justify-center active:scale-95 transition-transform"
+          aria-label="Start voice chat"
+        >
+          <div className="absolute inset-0 rounded-full border border-wtf-berry/15" />
+          <div className="absolute inset-3 rounded-full border border-wtf-berry/25" />
+          <div
+            className="absolute inset-7 rounded-full breathe-ring"
+            style={{ background: 'radial-gradient(circle, var(--wtf-berry) 0%, var(--wtf-berry-dark) 70%, transparent 100%)' }}
+          />
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative z-10">
+            <rect x="9" y="3" width="6" height="12" rx="3" />
+            <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
+          </svg>
+        </button>
+
+        <div className="mt-10 text-[14px] text-wtf-muted text-center max-w-[300px] leading-relaxed">
+          We'll need mic access. The first tap unlocks audio.
+        </div>
+
+        <button
+          onClick={() => router.back()}
+          className="absolute top-5 right-5 text-[14px] text-wtf-text-3 px-3 py-1.5"
+        >
+          Back
+        </button>
+
+        {error && (
+          <div className="absolute bottom-8 left-5 right-5 text-center text-[14px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
+            {error}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ============== ACTIVE VOICE SESSION ==============
   return (
     <div className="fixed inset-0 bg-wtf-bg text-wtf-text flex flex-col">
-      <div className="flex justify-between items-center px-5 pt-6 text-[10px] uppercase tracking-[0.08em] text-wtf-text-3 font-medium">
-        <span className="font-display normal-case tracking-normal text-[14px] text-wtf-text">Voice</span>
+      {audioEl}
+      <div className="flex justify-between items-center px-5 pt-6 text-[12px] uppercase tracking-[0.08em] text-wtf-text-3 font-medium">
+        <span className="font-display normal-case tracking-normal text-[16px] text-wtf-text">Voice</span>
         <span>{elapsed}</span>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-8 -mt-4">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 -mt-2">
         <div className="relative w-44 h-44 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border border-wtf-berry/15" />
           <div className="absolute inset-3 rounded-full border border-wtf-berry/25" />
@@ -264,19 +425,27 @@ export default function VoicePage() {
           </svg>
         </div>
 
-        <div className="text-center min-h-[80px] max-w-md">
+        <div className="text-[13px] text-wtf-text-3 uppercase tracking-wider">{stateLabel}</div>
+
+        <div className="text-center max-w-md w-full px-2">
           {transcript && state !== 'speaking' && (
-            <div className="font-display text-[18px] text-wtf-text leading-relaxed italic">"{transcript}"</div>
+            <div className="font-display text-[22px] text-wtf-text leading-relaxed italic">
+              "{transcript}"
+            </div>
           )}
           {state === 'speaking' && reply && (
-            <div className="text-[14px] text-wtf-text-2 leading-relaxed line-clamp-4">{reply}</div>
+            <div className="text-[17px] text-wtf-text leading-relaxed">
+              {reply}
+            </div>
           )}
-          <div className="text-[11px] text-wtf-text-3 mt-3 uppercase tracking-wider">{stateLabel}</div>
+          {state === 'listening' && !transcript && (
+            <div className="text-[15px] text-wtf-muted">I'm listening. Just talk.</div>
+          )}
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 mb-3 text-center text-[12px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
+        <div className="mx-5 mb-2 text-center text-[14px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
           {error}
         </div>
       )}
@@ -312,7 +481,7 @@ export default function VoicePage() {
           </svg>
         </button>
       </div>
-      <div className="text-[10px] text-wtf-muted text-center pb-4 -mt-3">Pause · type · end</div>
+      <div className="text-[12px] text-wtf-muted text-center pb-4 -mt-3">Pause · type · end</div>
     </div>
   );
 }

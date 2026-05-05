@@ -56,12 +56,12 @@ export default function SavedPage() {
       <Header baby={baby} back title="Saved" displayTitle />
 
       <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-4 pt-3 pb-6">
-        <div className="text-[11px] text-wtf-text-3 mb-3">
+        <div className="text-[14px] text-wtf-text-3 mb-3">
           {cards.length} card{cards.length === 1 ? '' : 's'} · the 3am bookmarks
         </div>
 
         <div className="bg-white border border-wtf-border rounded-full px-3 py-2 flex items-center gap-2 mb-3">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A89098" strokeWidth="2.5" strokeLinecap="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A89098" strokeWidth="2.5" strokeLinecap="round">
             <circle cx="11" cy="11" r="7" />
             <path d="M21 21l-4-4" />
           </svg>
@@ -69,7 +69,7 @@ export default function SavedPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find that one about..."
-            className="wtf-input text-[13px]"
+            className="wtf-input"
           />
         </div>
 
@@ -78,7 +78,7 @@ export default function SavedPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-[11px] px-3 py-1 rounded-full whitespace-nowrap border transition-colors ${
+              className={`text-[14px] px-3 py-1 rounded-full whitespace-nowrap border transition-colors ${
                 filter === f
                   ? 'bg-wtf-berry text-white border-wtf-berry font-medium'
                   : 'bg-white text-wtf-text-2 border-wtf-border'
@@ -90,7 +90,7 @@ export default function SavedPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="text-center text-wtf-text-3 text-[13px] mt-12">
+          <div className="text-center text-wtf-text-3 text-[15px] mt-12">
             {cards.length === 0 ? "Nothing saved yet. Tap 'Save card' under any answer." : 'Nothing matches.'}
           </div>
         ) : (
@@ -98,15 +98,15 @@ export default function SavedPage() {
             {filtered.map((c) => {
               const t = topicForCard(c);
               return (
-                <div key={c.id} className="bg-white border border-wtf-border rounded-wtf-lg p-3">
+                <div key={c.id} className="bg-white border border-wtf-border rounded-wtf-lg p-3.5">
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${COLOR_DOT[t.color]}`} />
-                    <span className={`text-[10px] font-medium uppercase tracking-wider ${COLOR_TEXT[t.color]}`}>{t.label}</span>
-                    <span className="text-[10px] text-wtf-muted ml-auto">{timeAgo(c.savedAt)}</span>
-                    <button onClick={() => handleDelete(c.id)} className="text-wtf-muted text-[10px] px-2">delete</button>
+                    <span className={`text-[12px] font-medium uppercase tracking-wider ${COLOR_TEXT[t.color]}`}>{t.label}</span>
+                    <span className="text-[12px] text-wtf-muted ml-auto">{timeAgo(c.savedAt)}</span>
+                    <button onClick={() => handleDelete(c.id)} className="text-wtf-muted text-[12px] px-2">delete</button>
                   </div>
-                  <div className="text-[13px] font-medium text-wtf-text">{c.title}</div>
-                  <div className="text-[11px] text-wtf-text-3 leading-relaxed mt-1">{c.snippet}</div>
+                  <div className="text-[16px] font-medium text-wtf-text">{c.title}</div>
+                  <div className="text-[14px] text-wtf-text-3 leading-relaxed mt-1">{c.snippet}</div>
                 </div>
               );
             })}

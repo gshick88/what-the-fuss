@@ -45,16 +45,16 @@ export default function SetupPage() {
           <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
             <div className="w-12 h-12 bg-wtf-berry rounded-wtf-lg flex items-center justify-center text-white text-[22px] font-medium mb-5">?!</div>
             <h1 className="font-display text-[32px] font-medium text-wtf-text leading-tight">Let's meet the <em className="italic">boss</em>.</h1>
-            <p className="text-[13px] text-wtf-text-3 mt-3 max-w-[260px] leading-relaxed">
+            <p className="text-[16px] text-wtf-text-3 mt-3 max-w-[280px] leading-relaxed">
               30 seconds of setup so we can give you real answers, not Google sludge.
             </p>
             <button
               onClick={() => setStep(1)}
-              className="mt-8 w-full bg-wtf-berry text-white rounded-wtf py-3 text-[14px] font-medium active:scale-[0.98]"
+              className="mt-8 w-full bg-wtf-berry text-white rounded-wtf py-3.5 text-[16px] font-medium active:scale-[0.98]"
             >
               Let's do it
             </button>
-            <button onClick={() => router.push('/')} className="mt-2 text-wtf-text-3 text-[12px] py-2">
+            <button onClick={() => router.push('/')} className="mt-2 text-wtf-text-3 text-[14px] py-2">
               I'll do this later
             </button>
           </div>
@@ -66,7 +66,7 @@ export default function SetupPage() {
               <div className="flex-1 h-1 bg-wtf-border rounded-full overflow-hidden">
                 <div className="h-full bg-wtf-berry" style={{ width: '65%' }} />
               </div>
-              <span className="text-[10px] text-wtf-text-3 font-medium">2 of 3</span>
+              <span className="text-[12px] text-wtf-text-3 font-medium">2 of 3</span>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -76,7 +76,7 @@ export default function SetupPage() {
                   value={form.name}
                   onChange={(e) => update('name', e.target.value)}
                   placeholder="Itai"
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[14px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[16px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -89,7 +89,7 @@ export default function SetupPage() {
                   type="date"
                   value={form.dob}
                   onChange={(e) => update('dob', e.target.value)}
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[14px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[16px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -115,7 +115,7 @@ export default function SetupPage() {
                   value={form.birthWeight}
                   onChange={(e) => update('birthWeight', e.target.value)}
                   placeholder="3.4 kg / 7lb 8oz"
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[14px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[16px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -125,16 +125,16 @@ export default function SetupPage() {
                   onChange={(e) => update('notes', e.target.value)}
                   placeholder="C-section, allergies, that one strange thing..."
                   rows={3}
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[13px] text-wtf-text outline-none focus:border-wtf-berry resize-none"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-2.5 text-[16px] text-wtf-text outline-none focus:border-wtf-berry resize-none"
                 />
               </Field>
             </div>
 
             <div className="mt-6 mb-6 flex gap-2">
-              <button onClick={() => setStep(0)} className="bg-white border border-wtf-border rounded-wtf py-3 px-5 text-[13px] text-wtf-text">
+              <button onClick={() => setStep(0)} className="bg-white border border-wtf-border rounded-wtf py-3 px-5 text-[15px] text-wtf-text">
                 Back
               </button>
-              <button onClick={finish} className="flex-1 bg-wtf-berry text-white rounded-wtf py-3 text-[14px] font-medium active:scale-[0.98]">
+              <button onClick={finish} className="flex-1 bg-wtf-berry text-white rounded-wtf py-3 text-[16px] font-medium active:scale-[0.98]">
                 Save
               </button>
             </div>
@@ -149,31 +149,31 @@ export default function SetupPage() {
               </svg>
             </div>
             <h1 className="font-display text-[28px] font-medium text-wtf-text leading-tight">Got it.</h1>
-            <p className="text-[13px] text-wtf-text-3 mt-2 max-w-[260px] leading-relaxed">
+            <p className="text-[16px] text-wtf-text-3 mt-2 max-w-[280px] leading-relaxed">
               We've got {form.name || 'their'} stats. Every answer is shaped around them.
             </p>
 
-            <div className="mt-5 bg-white border border-wtf-border rounded-wtf-lg p-3 w-full text-left">
+            <div className="mt-5 bg-white border border-wtf-border rounded-wtf-lg p-3.5 w-full text-left">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-full bg-wtf-berry-soft flex items-center justify-center text-wtf-berry-dark text-[12px] font-medium">
+                <div className="w-8 h-8 rounded-full bg-wtf-berry-soft flex items-center justify-center text-wtf-berry-dark text-[14px] font-medium">
                   {form.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
-                  <div className="text-[12px] font-medium text-wtf-text">{form.name || 'Unnamed'}</div>
-                  <div className="text-[11px] text-wtf-text-3">
+                  <div className="text-[15px] font-medium text-wtf-text">{form.name || 'Unnamed'}</div>
+                  <div className="text-[13px] text-wtf-text-3">
                     {ageLabel(form) || (form.bornOrDue === 'due' ? 'due date set' : 'no date set')}
                     {form.feeding && ` · ${form.feeding.toLowerCase()}`}
                   </div>
                 </div>
               </div>
-              <div className="text-[11px] text-wtf-muted pt-2 border-t border-wtf-border/60">
+              <div className="text-[13px] text-wtf-muted pt-2 border-t border-wtf-border/60">
                 Edit anytime from the corner avatar.
               </div>
             </div>
 
             <button
               onClick={() => router.push('/')}
-              className="mt-6 w-full bg-wtf-berry text-white rounded-wtf py-3 text-[14px] font-medium active:scale-[0.98]"
+              className="mt-6 w-full bg-wtf-berry text-white rounded-wtf py-3.5 text-[16px] font-medium active:scale-[0.98]"
             >
               Open the floodgates
             </button>
@@ -187,7 +187,7 @@ export default function SetupPage() {
 function Field({ label, children }) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider text-wtf-text-3 font-medium mb-1.5">{label}</div>
+      <div className="text-[12px] uppercase tracking-wider text-wtf-text-3 font-medium mb-1.5">{label}</div>
       {children}
     </div>
   );
@@ -197,7 +197,7 @@ function Chip({ children, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`text-[12px] px-3 py-1.5 rounded-full border transition-colors ${
+      className={`text-[14px] px-3 py-1.5 rounded-full border transition-colors ${
         active
           ? 'bg-wtf-berry-soft text-wtf-berry-dark border-wtf-berry font-medium'
           : 'bg-white text-wtf-text-2 border-wtf-border'

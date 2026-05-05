@@ -79,7 +79,7 @@ html, body {
   resize: none;
   width: 100%;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 17px;     /* Dongle reads small below this; 16+ also blocks iOS auto-zoom */
   color: var(--wtf-text);
 }
 .wtf-input::placeholder { color: var(--wtf-muted); }
