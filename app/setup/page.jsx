@@ -45,12 +45,12 @@ export default function SetupPage() {
           <div className="flex-1 flex flex-col items-center justify-center text-center pb-20">
             <div className="w-12 h-12 bg-wtf-berry rounded-wtf-lg flex items-center justify-center text-white text-[22px] font-medium mb-5">?!</div>
             <h1 className="font-display text-[40px] font-medium text-wtf-text leading-tight">Let's meet the <em className="italic">boss</em>.</h1>
-            <p className="text-[20px] text-wtf-text-3 mt-3 max-w-[320px] leading-relaxed">
+            <p className="text-[28px] text-wtf-text-3 mt-3 max-w-[420px] leading-relaxed">
               30 seconds of setup so we can give you real answers, not Google sludge.
             </p>
             <button
               onClick={() => setStep(1)}
-              className="mt-8 w-full bg-wtf-berry text-white rounded-wtf py-3.5 text-[20px] font-medium active:scale-[0.98]"
+              className="mt-8 w-full bg-wtf-berry text-white rounded-wtf py-4 text-[28px] font-medium active:scale-[0.98]"
             >
               Let's do it
             </button>
@@ -154,19 +154,19 @@ export default function SetupPage() {
             </p>
 
             <div className="mt-5 bg-white border border-wtf-border rounded-wtf-lg p-4 w-full text-left">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-9 h-9 rounded-full bg-wtf-berry-soft flex items-center justify-center text-wtf-berry-dark text-[16px] font-medium">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 rounded-full bg-wtf-berry-soft flex items-center justify-center text-wtf-berry-dark text-[22px] font-medium shrink-0">
                   {form.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
-                  <div className="text-[18px] font-medium text-wtf-text">{form.name || 'Unnamed'}</div>
-                  <div className="text-[15px] text-wtf-text-3">
+                  <div className="text-[28px] font-medium text-wtf-text leading-tight">{form.name || 'Unnamed'}</div>
+                  <div className="text-[28px] text-wtf-text-3 leading-tight">
                     {ageLabel(form) || (form.bornOrDue === 'due' ? 'due date set' : 'no date set')}
                     {form.feeding && ` · ${form.feeding.toLowerCase()}`}
                   </div>
                 </div>
               </div>
-              <div className="text-[15px] text-wtf-muted pt-2 border-t border-wtf-border/60">
+              <div className="text-[28px] text-wtf-muted pt-2 border-t border-wtf-border/60">
                 Edit anytime from the corner avatar.
               </div>
             </div>

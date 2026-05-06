@@ -71,7 +71,7 @@ export default function HomePage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[30px] font-medium text-wtf-berry-dark">Set up the baby profile.</div>
-              <div className="text-[16px] text-wtf-berry-dark/75 mt-0.5">30 seconds. Makes every answer 10× better.</div>
+              <div className="text-[25px] text-wtf-berry-dark/75 mt-0.5">30 seconds. Makes every answer 10× better.</div>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-wtf-berry-dark/60 shrink-0">
               <path d="M9 6l6 6-6 6" />
