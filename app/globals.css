@@ -54,7 +54,7 @@ html, body {
   font-family: 'Dongle', var(--font-sans), system-ui, -apple-system, sans-serif;
   letter-spacing: 0.005em;
   /* Bigger base — Dongle reads small at typical web sizes. */
-  font-size: 30px;
+  font-size: 18px;
 }
 
 /* Dongle has no 500 weight, only 300/400/700. Tailwind's font-medium would
@@ -82,7 +82,7 @@ html, body {
   resize: none;
   width: 100%;
   font-family: inherit;
-  font-size: 35px;     /* big — Dongle */
+  font-size: 25px;     /* big — Dongle */
   color: var(--wtf-text);
 }
 .wtf-input::placeholder { color: var(--wtf-muted); }

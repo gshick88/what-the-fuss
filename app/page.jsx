@@ -54,7 +54,7 @@ export default function HomePage() {
           <h1 className="font-display text-[44px] md:text-[52px] font-medium text-wtf-text leading-[1.05]">
             What's the <em className="italic">fuss</em>?
           </h1>
-          <p className="text-[20px] md:text-[22px] text-wtf-text-3 mt-3 leading-relaxed">
+          <p className="text-[25px] text-wtf-text-3 mt-3 leading-relaxed">
             Ask anything. No question is too small or too gross. We've heard worse.
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function HomePage() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-medium text-wtf-berry-dark">Set up the baby profile.</div>
+              <div className="text-[30px] font-medium text-wtf-berry-dark">Set up the baby profile.</div>
               <div className="text-[16px] text-wtf-berry-dark/75 mt-0.5">30 seconds. Makes every answer 10× better.</div>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-wtf-berry-dark/60 shrink-0">
