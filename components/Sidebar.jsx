@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { getConversations, getCurrentUser } from '@/lib/db';
+import { getConversations, getCurrentUser, currentHouseholdId, subscribeToConversations } from '@/lib/db';
 import { useTheme } from '@/lib/theme';
 
 export default function Sidebar({ open, onClose }) {
@@ -16,13 +16,32 @@ export default function Sidebar({ open, onClose }) {
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+    let unsubscribe = null;
+
     (async () => {
-      const [c, u] = await Promise.all([getConversations(), getCurrentUser()]);
+      const [c, u, hid] = await Promise.all([
+        getConversations(),
+        getCurrentUser(),
+        currentHouseholdId(),
+      ]);
       if (cancelled) return;
       setConvs(c);
       setEmail(u?.email || '');
+
+      // Live-refresh the recents whenever the household's conversations change
+      // (new question from another device, title update, etc).
+      if (hid) {
+        unsubscribe = subscribeToConversations(hid, async () => {
+          const fresh = await getConversations();
+          if (!cancelled) setConvs(fresh);
+        });
+      }
     })();
-    return () => { cancelled = true; };
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
   }, [open, pathname]);
 
   if (!open) return null;

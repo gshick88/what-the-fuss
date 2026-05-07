@@ -2,82 +2,198 @@
 
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
-import { getBaby } from '@/lib/db';
+import {
+  getBaby,
+  getHouseholdMembers,
+  listInvitations,
+  createInvitation,
+  deleteInvitation,
+  getCurrentUser,
+} from '@/lib/db';
+
+function timeUntil(iso) {
+  if (!iso) return '';
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return 'expired';
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  if (days > 0) return `${days}d left`;
+  return `${hours}h left`;
+}
 
 export default function SharePage() {
   const [baby, setBaby] = useState(null);
+  const [me, setMe] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [invites, setInvites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const b = await getBaby();
-      if (!cancelled) setBaby(b);
+      try {
+        const [b, m, mems, ivs] = await Promise.all([
+          getBaby(),
+          getCurrentUser(),
+          getHouseholdMembers(),
+          listInvitations(),
+        ]);
+        if (cancelled) return;
+        setBaby(b);
+        setMe(m);
+        setMembers(mems);
+        setInvites(ivs);
+      } catch (e) {
+        setError(e.message || 'Could not load.');
+      } finally {
+        setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  async function handleCreate() {
+    if (creating) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const inv = await createInvitation();
+      setInvites((prev) => [inv, ...prev]);
+    } catch (e) {
+      setError(e.message || 'Could not create invite.');
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleRevoke(id) {
+    if (!confirm('Revoke this invite link? Anyone holding it won\'t be able to use it.')) return;
+    try {
+      await deleteInvitation(id);
+      setInvites((prev) => prev.filter((i) => i.id !== id));
+    } catch (e) {
+      setError(e.message || 'Could not revoke.');
+    }
+  }
+
+  async function copyLink(token) {
+    const url = `${window.location.origin}/auth/accept?token=${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedToken(token);
+      setTimeout(() => setCopiedToken(null), 1800);
+    } catch {
+      // Fallback: just open the link
+      prompt('Copy this link:', url);
+    }
+  }
+
+  function shareWhatsApp(token) {
+    const url = `${window.location.origin}/auth/accept?token=${token}`;
+    const msg = encodeURIComponent(`Come join the WTF baby chat: ${url}`);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  const activeInvites = invites.filter((i) => !i.used_at && new Date(i.expires_at) > new Date());
 
   return (
     <>
       <Header baby={baby} back title="Add to the chat" displayTitle />
 
       <main className="flex-1 flex flex-col max-w-md w-full mx-auto px-4 pt-3 pb-6">
-        <p className="text-[18px] text-wtf-text-3 mb-4">
+        <p className="text-[18px] text-wtf-text-3 mb-5">
           Co-parent, grandma, the friend who's done this before.
         </p>
 
-        <div className="bg-white border border-wtf-border rounded-wtf-lg p-4 mb-4">
-          <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">In the chat</div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[16px] font-medium flex items-center justify-center">
-              {baby?.name?.[0]?.toUpperCase() || 'Y'}
-            </div>
-            <div className="flex-1">
-              <div className="text-[18px] font-medium text-wtf-text">You</div>
-              <div className="text-[16px] text-wtf-text-3">solo for now</div>
-            </div>
-          </div>
+        {/* MEMBERS */}
+        <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">In the chat</div>
+        <div className="bg-white border border-wtf-border rounded-wtf-lg p-3 mb-5 flex flex-col gap-2.5">
+          {loading && <div className="text-wtf-muted text-[16px] py-2">Loading…</div>}
+          {!loading && members.map((m) => {
+            const isMe = m.user_id === me?.id;
+            const display = m.display_name || m.email || 'Member';
+            const initial = (display[0] || '?').toUpperCase();
+            return (
+              <div key={m.user_id} className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-wtf-berry-soft text-wtf-berry-dark text-[16px] font-medium flex items-center justify-center shrink-0">
+                  {initial}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[18px] font-medium text-wtf-text truncate">
+                    {display}{isMe ? ' (you)' : ''}
+                  </div>
+                  <div className="text-[14px] text-wtf-text-3 truncate">
+                    {m.role === 'owner' ? 'Owner' : 'Member'} · joined {new Date(m.joined_at).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="bg-wtf-honey-soft border border-wtf-honey/40 rounded-wtf-lg p-4 mb-4">
-          <div className="text-[18px] font-medium text-[#854F0B] mb-1">Sharing is in the next version.</div>
-          <div className="text-[16px] text-[#854F0B]/85 leading-relaxed">
-            Real shared chat across devices needs a backend (Supabase, Vercel Postgres, etc). The UI is here so you can see how it'll feel — wiring it up is the next deploy.
-          </div>
-        </div>
+        {/* ACTIVE INVITES */}
+        {activeInvites.length > 0 && (
+          <>
+            <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">Pending invites</div>
+            <div className="flex flex-col gap-2 mb-5">
+              {activeInvites.map((inv) => (
+                <div key={inv.id} className="bg-white border border-wtf-border rounded-wtf-lg p-3 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="text-[14px] text-wtf-muted truncate flex-1">
+                      …/auth/accept?token={inv.token.slice(0, 6)}…
+                    </div>
+                    <span className="text-[13px] text-wtf-text-3 shrink-0">{timeUntil(inv.expires_at)}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => copyLink(inv.token)}
+                      className="flex-1 bg-wtf-berry text-white rounded-wtf py-2.5 text-[16px] font-medium active:scale-[0.98]"
+                    >
+                      {copiedToken === inv.token ? 'Copied!' : 'Copy link'}
+                    </button>
+                    <button
+                      onClick={() => shareWhatsApp(inv.token)}
+                      className="bg-white border border-wtf-border text-wtf-text rounded-wtf py-2.5 px-4 text-[16px] font-medium active:scale-[0.98]"
+                      aria-label="Share via WhatsApp"
+                    >
+                      WhatsApp
+                    </button>
+                    <button
+                      onClick={() => handleRevoke(inv.id)}
+                      className="bg-white border border-wtf-border text-wtf-muted rounded-wtf py-2.5 px-3 text-[14px]"
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
-        <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">Coming soon</div>
-        <div className="flex flex-col gap-2 opacity-60 pointer-events-none">
-          <Stub icon="link" title="Copy invite link" sub="wtf.app/join/..." />
-          <Stub icon="whatsapp" title="Send via WhatsApp" />
-          <Stub icon="qr" title="Show QR code" />
-        </div>
+        {/* CREATE NEW INVITE */}
+        <button
+          onClick={handleCreate}
+          disabled={creating}
+          className="w-full bg-wtf-berry text-white rounded-wtf py-4 text-[20px] font-medium flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50 transition-opacity"
+        >
+          <span className="text-2xl leading-none">+</span>
+          {creating ? 'Creating…' : 'New invite link'}
+        </button>
+
+        {error && (
+          <div className="mt-3 text-[15px] text-wtf-danger bg-wtf-danger-soft rounded-wtf p-3">
+            {error}
+          </div>
+        )}
 
         <div className="mt-auto pt-6 text-[15px] text-wtf-muted leading-relaxed">
-          Once shared, anyone you add will see the full chat history, ask their own questions, and save cards. You'll be able to remove them anytime.
+          Anyone with the link can join. Links last 14 days and can be used once. Revoke anytime to kill an unused link.
         </div>
       </main>
     </>
-  );
-}
-
-function Stub({ icon, title, sub }) {
-  return (
-    <div className="bg-white border border-wtf-border rounded-wtf-lg p-2.5 flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-md bg-wtf-bg border border-wtf-border flex items-center justify-center text-wtf-text-3">
-        {icon === 'link' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1 1M14 10a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1-1" /></svg>
-        )}
-        {icon === 'whatsapp' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.4A10 10 0 1 0 12 2zm5.4 14.4c-.2.6-1.4 1.2-1.9 1.3-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.6-.6-2.9-1.2-4.8-4.1-4.9-4.3-.1-.2-1.2-1.6-1.2-3s.7-2.1 1-2.4c.3-.3.6-.4.8-.4h.6c.2 0 .4-.1.7.5.2.6.8 2 .8 2.2.1.1.1.3 0 .5-.1.2-.1.3-.3.5-.1.2-.3.4-.4.5-.1.1-.3.3-.1.5.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.9-1c.2-.3.4-.2.6-.1.3.1 1.6.7 1.9.9.3.1.5.2.5.3.1.1.1.6-.1 1.3z"/></svg>
-        )}
-        {icon === 'qr' && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg>
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-[18px] font-medium text-wtf-text">{title}</div>
-        {sub && <div className="text-[16px] text-wtf-muted truncate">{sub}</div>}
-      </div>
-    </div>
   );
 }

@@ -10,6 +10,9 @@ import {
   getConversation,
   appendMessage,
   createConversation,
+  getCurrentUser,
+  getProfile,
+  subscribeToMessages,
 } from '@/lib/db';
 import { babyContextString } from '@/lib/storage';
 
@@ -23,16 +26,20 @@ function ChatInner() {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [me, setMe] = useState(null);
+  const [profiles, setProfiles] = useState({}); // userId → { email, display_name }
 
   const scrollRef = useRef(null);
   const sentRef = useRef(false);
 
-  // Load conversation + baby
+  // Load conversation + baby + me
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const b = await getBaby();
-      if (!cancelled) setBaby(b);
+      const [b, u] = await Promise.all([getBaby(), getCurrentUser()]);
+      if (cancelled) return;
+      setBaby(b);
+      setMe(u);
 
       if (id) {
         const c = await getConversation(id);
@@ -48,6 +55,45 @@ function ChatInner() {
     })();
     return () => { cancelled = true; };
   }, [id, router]);
+
+  // Realtime — subscribe to new messages on this conversation. Skip messages
+  // we created ourselves (those are already in local state from the optimistic
+  // update). Anything from another household member appears live.
+  useEffect(() => {
+    if (!conv?.id) return;
+    const unsubscribe = subscribeToMessages(conv.id, async (msg) => {
+      // Skip our own — already optimistically added.
+      if (me?.id && msg.createdBy === me.id) return;
+      // Dedupe in case the realtime event raced a refetch.
+      setConv((prev) => {
+        if (!prev) return prev;
+        if (prev.messages.some((m) => m.id === msg.id)) return prev;
+        return { ...prev, messages: [...prev.messages, msg] };
+      });
+      // Lazy-fetch the profile of the author so we can attribute it.
+      if (msg.createdBy && !profiles[msg.createdBy]) {
+        const p = await getProfile(msg.createdBy);
+        if (p) setProfiles((prev) => ({ ...prev, [msg.createdBy]: p }));
+      }
+    });
+    return unsubscribe;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conv?.id, me?.id]);
+
+  // On conv load, fetch profiles for any unique authors we don't already have
+  useEffect(() => {
+    if (!conv?.messages?.length) return;
+    const need = [...new Set(conv.messages.map((m) => m.createdBy).filter(Boolean))]
+      .filter((uid) => !profiles[uid]);
+    if (!need.length) return;
+    (async () => {
+      const fetched = await Promise.all(need.map((uid) => getProfile(uid)));
+      const next = {};
+      need.forEach((uid, i) => { if (fetched[i]) next[uid] = fetched[i]; });
+      setProfiles((prev) => ({ ...prev, ...next }));
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conv?.messages?.length]);
 
   // Auto-scroll
   useEffect(() => {
@@ -117,9 +163,22 @@ function ChatInner() {
               Ask anything. {baby?.name ? `${baby.name}'s` : 'Your baby\'s'} context is loaded.
             </div>
           )}
-          {conv.messages.map((m, i) => (
-            <MessageBubble key={i} message={{ ...m, convId: conv.id }} />
-          ))}
+          {conv.messages.map((m, i) => {
+            const author = m.createdBy && profiles[m.createdBy];
+            const authorLabel =
+              m.role === 'user'
+                ? (m.createdBy && me?.id && m.createdBy === me.id
+                    ? 'you'
+                    : (author?.display_name || author?.email?.split('@')[0] || ''))
+                : '';
+            return (
+              <MessageBubble
+                key={m.id || i}
+                message={{ ...m, convId: conv.id }}
+                authorLabel={authorLabel}
+              />
+            );
+          })}
           {busy && (
             <div className="self-start max-w-[85%]">
               <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-3.5 py-3 flex gap-1.5">

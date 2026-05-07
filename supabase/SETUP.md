@@ -112,3 +112,41 @@ Ping me with:
 and I'll write all the code: the auth pages, the Supabase data layer to replace localStorage, image uploads, route protection, and the magic link sign-in flow. After I push, you redeploy on Vercel — sign in with your email, magic link arrives, you're in. Cross-device sync works immediately (sign in on phone + laptop, see the same data).
 
 If anything blocks you in the steps above, tell me which step and what error/screen you're seeing.
+
+---
+
+## V2 Phase 2: invites + realtime (extra setup)
+
+When ready for Phase 2 (invite Gabby, see live updates between devices), do these two extra things:
+
+### A. Run the Phase 2 schema
+
+1. Supabase Dashboard → SQL Editor → New query.
+2. Open `supabase/schema-v2-phase2.sql` from your project, copy/paste, **Run**.
+3. This adds the `profiles` and `invitations` tables, plus the `accept_invitation()` function that handles invite acceptance safely.
+
+Idempotent — safe to re-run.
+
+### B. Enable realtime on the right tables
+
+Phase 2 uses Supabase Realtime to push new messages and conversations to the other devices in your household.
+
+1. Supabase Dashboard → **Database** → **Replication**.
+2. You'll see a list of tables with toggles under "Source".
+3. Toggle these ON:
+   - `messages`
+   - `conversations`
+4. That's it.
+
+(Realtime is opt-in per-table for performance reasons. RLS still applies — Gabby will only receive realtime events for conversations her household has access to.)
+
+### Verifying
+
+After redeploy, on your phone:
+- Go to "Add to the chat" in the sidebar
+- Tap "+ New invite link"
+- Copy the link, send to yourself or a test email
+- Open the link in an incognito window or another browser
+- Enter a different email → magic link → click → land on /auth/accept → "You're in" → home
+
+Then ask a question on one device. Watch it appear in the other device's sidebar/chat within a couple seconds (no refresh needed).

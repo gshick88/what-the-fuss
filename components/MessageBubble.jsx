@@ -29,13 +29,16 @@ function inlineMd(s) {
     .replace(/`([^`]+)`/g, '<code>$1</code>');
 }
 
-export default function MessageBubble({ message, onSaved }) {
+export default function MessageBubble({ message, onSaved, authorLabel }) {
   const [saved, setSaved] = useState(false);
   const [savingErr, setSavingErr] = useState(null);
 
   if (message.role === 'user') {
     return (
       <div className="self-end max-w-[85%] flex flex-col gap-1.5 items-end animate-slide-up">
+        {authorLabel && authorLabel !== 'you' && (
+          <div className="text-[14px] text-wtf-text-3 px-1">{authorLabel} asked</div>
+        )}
         {message.image?.url && (
           <div className="bg-wtf-berry rounded-wtf-lg p-1">
             <img src={message.image.url} alt="" className="rounded-wtf object-cover max-h-56 max-w-[220px]" />
