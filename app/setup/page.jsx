@@ -66,7 +66,7 @@ export default function SetupPage() {
               <div className="flex-1 h-1 bg-wtf-border rounded-full overflow-hidden">
                 <div className="h-full bg-wtf-berry" style={{ width: '65%' }} />
               </div>
-              <span className="text-[14px] text-wtf-text-3 font-medium">2 of 3</span>
+              <span className="text-[18px] text-wtf-text-3 font-medium">2 of 3</span>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -76,7 +76,7 @@ export default function SetupPage() {
                   value={form.name}
                   onChange={(e) => update('name', e.target.value)}
                   placeholder="Itai"
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-3 text-[20px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-4 py-3 text-[22px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -89,7 +89,7 @@ export default function SetupPage() {
                   type="date"
                   value={form.dob}
                   onChange={(e) => update('dob', e.target.value)}
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-3 text-[20px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-4 py-3 text-[22px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -115,7 +115,7 @@ export default function SetupPage() {
                   value={form.birthWeight}
                   onChange={(e) => update('birthWeight', e.target.value)}
                   placeholder="3.4 kg / 7lb 8oz"
-                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-3 py-3 text-[20px] text-wtf-text outline-none focus:border-wtf-berry"
+                  className="w-full bg-white border border-wtf-border rounded-wtf-sm px-4 py-3 text-[22px] text-wtf-text outline-none focus:border-wtf-berry"
                 />
               </Field>
 
@@ -131,10 +131,10 @@ export default function SetupPage() {
             </div>
 
             <div className="mt-6 mb-6 flex gap-2">
-              <button onClick={() => setStep(0)} className="bg-white border border-wtf-border rounded-wtf py-3.5 px-6 text-[18px] text-wtf-text">
+              <button onClick={() => setStep(0)} className="bg-white border border-wtf-border rounded-wtf py-4 px-7 text-[22px] text-wtf-text">
                 Back
               </button>
-              <button onClick={finish} className="flex-1 bg-wtf-berry text-white rounded-wtf py-3.5 text-[20px] font-medium active:scale-[0.98]">
+              <button onClick={finish} className="flex-1 bg-wtf-berry text-white rounded-wtf py-4 text-[24px] font-medium active:scale-[0.98]">
                 Save
               </button>
             </div>
@@ -187,7 +187,7 @@ export default function SetupPage() {
 function Field({ label, children }) {
   return (
     <div>
-      <div className="text-[14px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">{label}</div>
+      <div className="text-[18px] uppercase tracking-wider text-wtf-text-3 font-medium mb-2">{label}</div>
       {children}
     </div>
   );
@@ -197,7 +197,7 @@ function Chip({ children, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`text-[17px] px-4 py-2 rounded-full border transition-colors ${
+      className={`text-[22px] px-5 py-2 rounded-full border transition-colors ${
         active
           ? 'bg-wtf-berry-soft text-wtf-berry-dark border-wtf-berry font-medium'
           : 'bg-white text-wtf-text-2 border-wtf-border'
