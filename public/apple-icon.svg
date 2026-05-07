@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <!-- cream rounded-square background -->
+  <rect width="180" height="180" rx="40" fill="#FAF5EE"/>
+
+  <!-- speech bubble: bubble path is 64x64, scaled ~1.4× and offset so it sits
+       in the upper portion of the icon, leaving room for the wordmark below -->
+  <g transform="translate(45 24) scale(1.40625)">
+    <path d="M 12 4 H 52 A 8 8 0 0 1 60 12 V 36 A 8 8 0 0 1 52 44 H 26 L 17 53 L 19 44 H 12 A 8 8 0 0 1 4 36 V 12 A 8 8 0 0 1 12 4 Z" fill="#7A3A5A"/>
+    <text x="32" y="24" text-anchor="middle" dominant-baseline="central" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="700" fill="white">?!</text>
+  </g>
+
+  <!-- WTF wordmark below the bubble -->
+  <text x="90" y="155" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="700" fill="#7A3A5A" letter-spacing="3">WTF</text>
+</svg>
