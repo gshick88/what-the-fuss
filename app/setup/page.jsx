@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
-import { getBaby, setBaby as saveBaby, ageLabel } from '@/lib/storage';
+import { getBaby, setBaby as saveBaby } from '@/lib/db';
+import { ageLabel } from '@/lib/storage';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -19,21 +20,29 @@ export default function SetupPage() {
   });
 
   useEffect(() => {
-    const existing = getBaby();
-    if (existing) {
-      setForm({ ...form, ...existing });
-      setStep(1); // Skip welcome if already exists; let them edit
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    (async () => {
+      const existing = await getBaby();
+      if (cancelled) return;
+      if (existing) {
+        setForm((prev) => ({ ...prev, ...existing }));
+        setStep(1); // Skip welcome if already exists; let them edit
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   function update(k, v) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
-  function finish() {
-    saveBaby(form);
-    setStep(2);
+  async function finish() {
+    try {
+      await saveBaby(form);
+      setStep(2);
+    } catch (e) {
+      console.error('save baby failed', e);
+    }
   }
 
   return (

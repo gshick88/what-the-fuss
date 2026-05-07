@@ -8,10 +8,10 @@ import MessageBubble from '@/components/MessageBubble';
 import {
   getBaby,
   getConversation,
-  upsertConversation,
-  newConversation,
-  babyContextString,
-} from '@/lib/storage';
+  appendMessage,
+  createConversation,
+} from '@/lib/db';
+import { babyContextString } from '@/lib/storage';
 
 function ChatInner() {
   const router = useRouter();
@@ -25,34 +25,40 @@ function ChatInner() {
   const [error, setError] = useState(null);
 
   const scrollRef = useRef(null);
-  const sentRef = useRef(false); // guard against double auto-send in StrictMode
+  const sentRef = useRef(false);
 
   // Load conversation + baby
   useEffect(() => {
-    setBaby(getBaby());
-    if (id) {
-      const c = getConversation(id);
-      if (c) setConv(c);
-      else router.replace('/');
-    } else {
-      const c = newConversation();
-      upsertConversation(c);
-      setConv(c);
-      router.replace(`/chat?id=${c.id}`);
-    }
+    let cancelled = false;
+    (async () => {
+      const b = await getBaby();
+      if (!cancelled) setBaby(b);
+
+      if (id) {
+        const c = await getConversation(id);
+        if (cancelled) return;
+        if (c) setConv(c);
+        else router.replace('/');
+      } else {
+        const c = await createConversation();
+        if (cancelled) return;
+        setConv(c);
+        router.replace(`/chat?id=${c.id}`);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [id, router]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [conv?.messages?.length, busy]);
 
-  // Auto-send if conversation was created with a seed user message and no AI reply yet
+  // Auto-send if conversation has a user message at the tail and no AI reply yet
   useEffect(() => {
     if (!conv || sentRef.current) return;
     const last = conv.messages[conv.messages.length - 1];
-    const needsReply = conv.messages.length > 0 && last?.role === 'user';
-    if (needsReply) {
+    if (conv.messages.length > 0 && last?.role === 'user') {
       sentRef.current = true;
       sendToClaude(conv.messages);
     }
@@ -75,9 +81,8 @@ function ChatInner() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong.');
 
       const reply = { role: 'assistant', content: data.reply, ts: Date.now(), convId: conv.id };
-      const updated = { ...conv, messages: [...messages, reply] };
-      setConv(updated);
-      upsertConversation(updated);
+      await appendMessage(conv.id, reply);
+      setConv((prev) => prev ? { ...prev, messages: [...messages, reply] } : prev);
     } catch (e) {
       setError(e.message || 'Something went wrong.');
     } finally {
@@ -85,12 +90,17 @@ function ChatInner() {
     }
   }
 
-  function handleSend({ text, image }) {
+  async function handleSend({ text, image }) {
     if (!conv) return;
     const userMsg = { role: 'user', content: text, image: image || null, ts: Date.now() };
+    try {
+      await appendMessage(conv.id, userMsg);
+    } catch (e) {
+      setError(e.message || 'Could not save message.');
+      return;
+    }
     const next = { ...conv, messages: [...conv.messages, userMsg] };
     setConv(next);
-    upsertConversation(next);
     sendToClaude(next.messages);
   }
 

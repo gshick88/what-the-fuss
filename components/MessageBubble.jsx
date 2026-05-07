@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { saveCard } from '@/lib/storage';
+import { saveCard } from '@/lib/db';
 
-// Very light markdown: paragraphs, **bold**, single-line bullets.
 function renderMarkdown(text) {
   if (!text) return null;
   const blocks = text.split(/\n{2,}/);
@@ -24,7 +23,6 @@ function renderMarkdown(text) {
 }
 
 function inlineMd(s) {
-  // Escape, then re-introduce **bold** and `code`.
   const esc = s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   return esc
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -33,13 +31,14 @@ function inlineMd(s) {
 
 export default function MessageBubble({ message, onSaved }) {
   const [saved, setSaved] = useState(false);
+  const [savingErr, setSavingErr] = useState(null);
 
   if (message.role === 'user') {
     return (
       <div className="self-end max-w-[85%] flex flex-col gap-1.5 items-end animate-slide-up">
-        {message.image && (
+        {message.image?.url && (
           <div className="bg-wtf-berry rounded-wtf-lg p-1">
-            <img src={`data:${message.image.mime};base64,${message.image.data}`} alt="" className="rounded-wtf object-cover max-h-56 max-w-[220px]" />
+            <img src={message.image.url} alt="" className="rounded-wtf object-cover max-h-56 max-w-[220px]" />
           </div>
         )}
         {message.content && (
@@ -51,13 +50,22 @@ export default function MessageBubble({ message, onSaved }) {
     );
   }
 
-  // assistant
-  function handleSave() {
-    const title = (message.content || '').split('\n')[0].slice(0, 40).replace(/\.$/, '') || 'Saved answer';
-    const snippet = (message.content || '').slice(0, 140);
-    saveCard({ title, snippet, topic: message.topic || 'general', source: message.convId || null, content: message.content });
-    setSaved(true);
-    onSaved?.();
+  async function handleSave() {
+    const title = (message.content || '').split('\n')[0].slice(0, 60).replace(/\.$/, '') || 'Saved answer';
+    const snippet = (message.content || '').slice(0, 160);
+    try {
+      await saveCard({
+        title,
+        snippet,
+        topic: message.topic || 'general',
+        source: message.convId || null,
+        content: message.content,
+      });
+      setSaved(true);
+      onSaved?.();
+    } catch (e) {
+      setSavingErr('Could not save.');
+    }
   }
 
   return (
@@ -65,7 +73,7 @@ export default function MessageBubble({ message, onSaved }) {
       <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-4 py-3 text-[22px] leading-relaxed text-wtf-text msg-content">
         {renderMarkdown(message.content)}
       </div>
-      <div className="mt-2 flex gap-1.5 flex-wrap">
+      <div className="mt-2 flex gap-1.5 flex-wrap items-center">
         <button
           onClick={handleSave}
           disabled={saved}
@@ -73,6 +81,7 @@ export default function MessageBubble({ message, onSaved }) {
         >
           {saved ? 'Saved' : 'Save card'}
         </button>
+        {savingErr && <span className="text-[14px] text-wtf-danger">{savingErr}</span>}
       </div>
     </div>
   );

@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
-import { getBaby } from '@/lib/storage';
+import { getBaby } from '@/lib/db';
 
 export default function SharePage() {
   const [baby, setBaby] = useState(null);
 
   useEffect(() => {
-    setBaby(getBaby());
+    let cancelled = false;
+    (async () => {
+      const b = await getBaby();
+      if (!cancelled) setBaby(b);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   return (

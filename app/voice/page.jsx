@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getBaby, babyContextString, newConversation, upsertConversation } from '@/lib/storage';
+import { getBaby, createConversation, appendMessage } from '@/lib/db';
+import { babyContextString } from '@/lib/storage';
 
 // Pick the warmest available female English voice on the user's device.
 // iOS premium voices ("Moira", "Samantha", "Karen") are warmest. Chrome desktop
@@ -90,7 +91,7 @@ export default function VoicePage() {
 
   // Initialize the session — must be called from inside the Start button click
   // so iOS Safari treats it as a user-gesture and audio synthesis unlocks.
-  function handleStart() {
+  async function handleStart() {
     setError(null);
 
     // (1a) Unlock Web Speech TTS by speaking a silent utterance from the gesture.
@@ -119,10 +120,14 @@ export default function VoicePage() {
     }
 
     // (2) Initialize conversation + baby context
-    babyRef.current = getBaby();
-    const c = newConversation({ title: 'Voice mode' });
-    upsertConversation(c);
-    convRef.current = c;
+    try {
+      babyRef.current = await getBaby();
+      const c = await createConversation({ title: 'Voice mode' });
+      convRef.current = c;
+    } catch (e) {
+      setError('Could not start session.');
+      return;
+    }
 
     // (3) Set up speech recognition
     const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -176,8 +181,11 @@ export default function VoicePage() {
 
     const userMsg = { role: 'user', content: text, ts: Date.now() };
     messagesRef.current = [...messagesRef.current, userMsg];
-    convRef.current = { ...convRef.current, messages: messagesRef.current };
-    upsertConversation(convRef.current);
+
+    // Persist to DB (non-fatal if it fails — keep the conversation flowing).
+    try {
+      if (convRef.current?.id) await appendMessage(convRef.current.id, userMsg);
+    } catch {}
 
     try {
       const res = await fetch('/api/chat', {
@@ -194,8 +202,10 @@ export default function VoicePage() {
 
       const assistantMsg = { role: 'assistant', content: data.reply, ts: Date.now() };
       messagesRef.current = [...messagesRef.current, assistantMsg];
-      convRef.current = { ...convRef.current, messages: messagesRef.current };
-      upsertConversation(convRef.current);
+
+      try {
+        if (convRef.current?.id) await appendMessage(convRef.current.id, assistantMsg);
+      } catch {}
 
       setReply(data.reply);
       speak(data.reply);

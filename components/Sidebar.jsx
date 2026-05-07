@@ -3,17 +3,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { getConversations } from '@/lib/storage';
+import { getConversations, getCurrentUser } from '@/lib/db';
 import { useTheme } from '@/lib/theme';
 
 export default function Sidebar({ open, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
   const [convs, setConvs] = useState([]);
+  const [email, setEmail] = useState('');
   const { theme, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
-    if (open) setConvs(getConversations());
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const [c, u] = await Promise.all([getConversations(), getCurrentUser()]);
+      if (cancelled) return;
+      setConvs(c);
+      setEmail(u?.email || '');
+    })();
+    return () => { cancelled = true; };
   }, [open, pathname]);
 
   if (!open) return null;
@@ -68,19 +77,20 @@ export default function Sidebar({ open, onClose }) {
             </span>
           </button>
 
-          <button
-            onClick={() => {
-              if (!confirm('Wipe everything — baby profile, all chats, saved cards, theme. Sure?')) return;
-              try {
-                ['wtf:baby','wtf:conversations','wtf:saved','wtf:theme'].forEach(k => localStorage.removeItem(k));
-              } catch {}
-              document.documentElement.classList.remove('dark');
-              window.location.href = '/';
-            }}
-            className="mt-1 text-[18px] text-wtf-muted px-2 py-2 rounded-md hover:bg-wtf-card/60 text-left"
-          >
-            Reset all data
-          </button>
+          {/* Account footer */}
+          <div className="mt-3 pt-3 border-t border-wtf-border/60 flex flex-col gap-2">
+            {email && (
+              <div className="text-[14px] text-wtf-muted px-2 truncate" title={email}>
+                Signed in as <span className="text-wtf-text-2">{email}</span>
+              </div>
+            )}
+            <a
+              href="/auth/logout"
+              className="text-[18px] text-wtf-text-3 px-2 py-2 rounded-md hover:bg-wtf-card/60 text-left"
+            >
+              Sign out
+            </a>
+          </div>
         </div>
       </aside>
     </div>

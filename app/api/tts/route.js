@@ -5,12 +5,21 @@
 // Cost: tts-1 is $0.015 per 1k chars. A typical Claude reply (~400 chars) costs
 // ~$0.006. Personal use will be pennies per month.
 
+import { createClient } from '@/lib/supabase/server';
+
 const MODEL = process.env.OPENAI_TTS_MODEL || 'tts-1';
 const DEFAULT_VOICE = process.env.OPENAI_TTS_VOICE || 'nova';
 // Available voices: alloy, echo, fable, onyx, nova, shimmer
 // nova = warm female, slightly mature. shimmer = brighter female.
 
 export async function POST(req) {
+  // Auth check — TTS costs money, only signed-in users.
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return Response.json({ error: 'Not signed in.' }, { status: 401 });
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return Response.json(

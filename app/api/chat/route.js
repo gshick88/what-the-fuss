@@ -1,6 +1,7 @@
-// Server-side Claude proxy. Keeps the API key off the client.
-// POST { messages: [{role, content, image?}], babyContext: string }
-// Returns { reply: string }
+// Server-side Claude proxy. Verifies the user is signed in (via Supabase
+// session cookies) before calling the Anthropic API.
+
+import { createClient } from '@/lib/supabase/server';
 
 const SYSTEM_PROMPT = `You are What The Fuss?!, a parenting chat for first-time parents who are tired and overwhelmed.
 
@@ -29,14 +30,23 @@ The parent has shared this context about their baby — use it to tailor your an
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 
 export async function POST(req) {
+  // ---- auth check --------------------------------------------------------
+  const supabase = createClient();
+  const { data: { user }, error: authErr } = await supabase.auth.getUser();
+  if (authErr || !user) {
+    return Response.json({ error: 'Not signed in.' }, { status: 401 });
+  }
+
+  // ---- env check ---------------------------------------------------------
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return Response.json(
-      { error: 'Missing ANTHROPIC_API_KEY. Set it in your .env.local (dev) or Vercel env vars (prod).' },
+      { error: 'Missing ANTHROPIC_API_KEY. Set it in .env.local (dev) or Vercel env vars (prod).' },
       { status: 500 }
     );
   }
 
+  // ---- request body ------------------------------------------------------
   let body;
   try {
     body = await req.json();
@@ -46,16 +56,23 @@ export async function POST(req) {
 
   const { messages = [], babyContext = '' } = body;
 
-  // Convert our { role, content, image } into Anthropic content blocks.
+  // ---- shape messages for Anthropic API ---------------------------------
+  // Images are now Supabase Storage URLs (not base64). Claude's vision API
+  // accepts both — we pass the URL directly.
   const anthropicMessages = messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => {
       if (m.role === 'assistant') {
         return { role: 'assistant', content: m.content || '' };
       }
-      // user — may include an image
       const blocks = [];
-      if (m.image?.data && m.image?.mime) {
+      if (m.image?.url) {
+        blocks.push({
+          type: 'image',
+          source: { type: 'url', url: m.image.url },
+        });
+      } else if (m.image?.data && m.image?.mime) {
+        // Backward compatibility — old in-flight base64 images.
         blocks.push({
           type: 'image',
           source: { type: 'base64', media_type: m.image.mime, data: m.image.data },
@@ -71,6 +88,7 @@ export async function POST(req) {
     ? `${SYSTEM_PROMPT}\n\n${babyContext}`
     : `${SYSTEM_PROMPT}\n\n(No baby profile yet — give general answers and gently suggest they fill out the baby profile so you can be more specific.)`;
 
+  // ---- call Anthropic ----------------------------------------------------
   let res;
   try {
     res = await fetch('https://api.anthropic.com/v1/messages', {

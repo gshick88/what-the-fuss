@@ -2,52 +2,47 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-// Read a File as base64 (no data URL prefix)
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result || '';
-      const comma = result.indexOf(',');
-      resolve(comma >= 0 ? result.slice(comma + 1) : result);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { uploadImage } from '@/lib/db';
 
 export default function Composer({ value, onChange, onSend, placeholder = 'Ask anything...', disabled }) {
   const router = useRouter();
   const fileRef = useRef(null);
+  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [imageData, setImageData] = useState(null);
-  const [imageMime, setImageMime] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-  async function handleFile(e) {
+  function handleFile(e) {
     const f = e.target.files?.[0];
     if (!f) return;
-    const data = await fileToBase64(f);
-    setImageData(data);
-    setImageMime(f.type || 'image/jpeg');
+    setImageFile(f);
     setImagePreview(URL.createObjectURL(f));
     e.target.value = '';
   }
 
   function clearImage() {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
     setImagePreview(null);
-    setImageData(null);
-    setImageMime(null);
   }
 
   async function send() {
-    if (disabled) return;
-    if (!value?.trim() && !imageData) return;
-    const payload = {
-      text: value?.trim() || '',
-      image: imageData ? { mime: imageMime, data: imageData } : null,
-    };
-    onSend?.(payload);
+    if (disabled || uploading) return;
+    if (!value?.trim() && !imageFile) return;
+
+    let image = null;
+    if (imageFile) {
+      try {
+        setUploading(true);
+        image = await uploadImage(imageFile);
+      } catch (e) {
+        console.error('upload failed', e);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    onSend?.({ text: value?.trim() || '', image });
     onChange?.('');
     clearImage();
   }
@@ -64,7 +59,7 @@ export default function Composer({ value, onChange, onSend, placeholder = 'Ask a
       {imagePreview && (
         <div className="mb-2 flex items-center gap-2 bg-white border border-wtf-border rounded-wtf p-2">
           <img src={imagePreview} alt="" className="w-14 h-14 rounded-md object-cover" />
-          <div className="text-[18px] text-wtf-text-2 flex-1">Photo attached</div>
+          <div className="text-[18px] text-wtf-text-2 flex-1">{uploading ? 'Uploading…' : 'Photo attached'}</div>
           <button onClick={clearImage} className="text-wtf-muted text-[16px] px-2">Remove</button>
         </div>
       )}
@@ -98,7 +93,7 @@ export default function Composer({ value, onChange, onSend, placeholder = 'Ask a
           placeholder={placeholder}
           rows={1}
           className="wtf-input py-2 leading-tight"
-          style={{ minHeight: 24, maxHeight: 120 }}
+          style={{ minHeight: 28, maxHeight: 120 }}
         />
 
         <button
@@ -115,7 +110,7 @@ export default function Composer({ value, onChange, onSend, placeholder = 'Ask a
 
         <button
           onClick={send}
-          disabled={disabled || (!value?.trim() && !imageData)}
+          disabled={disabled || uploading || (!value?.trim() && !imageFile)}
           className="w-10 h-10 rounded-full bg-wtf-berry text-white flex items-center justify-center disabled:opacity-40 active:scale-95 transition-transform shrink-0"
           aria-label="Send"
         >

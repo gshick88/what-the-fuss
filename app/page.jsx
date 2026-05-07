@@ -7,32 +7,41 @@ import TopicChip from '@/components/TopicChip';
 import Composer from '@/components/Composer';
 import Sidebar from '@/components/Sidebar';
 import { TOPICS } from '@/lib/topics';
-import { getBaby, newConversation, upsertConversation } from '@/lib/storage';
+import { getBaby, createConversation } from '@/lib/db';
 
 export default function HomePage() {
   const router = useRouter();
   const [baby, setBaby] = useState(null);
   const [text, setText] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setBaby(getBaby());
+    (async () => {
+      const b = await getBaby();
+      setBaby(b);
+    })();
   }, []);
 
-  function startConversation({ text, image, topic }) {
-    const conv = newConversation({
-      title: text ? text.slice(0, 60) : (topic?.label || 'New question'),
-      messages: [
-        {
-          role: 'user',
-          content: text || (topic?.seed ?? ''),
-          image: image || null,
-          ts: Date.now(),
-        },
-      ],
-    });
-    upsertConversation(conv);
-    router.push(`/chat?id=${conv.id}`);
+  async function startConversation({ text, image, topic }) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const conv = await createConversation({
+        title: text ? text.slice(0, 60) : (topic?.label || 'New question'),
+        messages: [
+          {
+            role: 'user',
+            content: text || (topic?.seed ?? ''),
+            image: image || null,
+          },
+        ],
+      });
+      router.push(`/chat?id=${conv.id}`);
+    } catch (e) {
+      console.error(e);
+      setBusy(false);
+    }
   }
 
   return (
@@ -90,6 +99,7 @@ export default function HomePage() {
             value={text}
             onChange={setText}
             onSend={(payload) => startConversation(payload)}
+            disabled={busy}
             placeholder={baby?.name ? `Ask about ${baby.name}...` : 'Ask anything...'}
           />
           <div className="text-[16px] text-wtf-muted text-center mt-2.5 leading-relaxed">

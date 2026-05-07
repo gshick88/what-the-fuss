@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Header from '@/components/Header';
-import { getBaby, getSaved, deleteCard } from '@/lib/storage';
+import { getBaby, getSaved, deleteCard } from '@/lib/db';
 import { COLOR_DOT, COLOR_TEXT } from '@/lib/topics';
 
 const TOPIC_FILTERS = ['All', 'Sleep', 'Feeding', 'Poop', 'Fever', 'Skin', 'Other'];
@@ -33,8 +33,14 @@ export default function SavedPage() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
-    setBaby(getBaby());
-    setCards(getSaved());
+    let cancelled = false;
+    (async () => {
+      const [b, s] = await Promise.all([getBaby(), getSaved()]);
+      if (cancelled) return;
+      setBaby(b);
+      setCards(s);
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = useMemo(() => {
@@ -46,9 +52,10 @@ export default function SavedPage() {
     });
   }, [cards, filter, query]);
 
-  function handleDelete(id) {
-    deleteCard(id);
-    setCards(getSaved());
+  async function handleDelete(id) {
+    await deleteCard(id);
+    const fresh = await getSaved();
+    setCards(fresh);
   }
 
   return (
