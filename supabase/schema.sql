@@ -94,6 +94,24 @@ alter table conversations      enable row level security;
 alter table messages           enable row level security;
 alter table saved_cards        enable row level security;
 
+-- ---------- HELPER: avoid RLS recursion on household_members ----------------
+-- Any policy that needs "what households does this user belong to?" must NOT
+-- subquery household_members directly — that triggers infinite recursion in
+-- the RLS planner and silently returns nothing. Use this SECURITY DEFINER
+-- function instead, which bypasses RLS for the membership lookup.
+
+create or replace function auth_user_households()
+returns setof uuid
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select household_id from household_members where user_id = auth.uid();
+$$;
+
+grant execute on function auth_user_households() to authenticated, anon;
+
 -- ---------- ROW-LEVEL SECURITY: POLICIES ------------------------------------
 -- Drop any old policies first so this script is safely re-runnable.
 
@@ -115,9 +133,7 @@ drop policy if exists "saved_cards: household members all access"   on saved_car
 -- households -----------------------------------------------------------------
 -- A user can READ households they're a member of.
 create policy "households: members can read" on households
-  for select using (
-    id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for select using (id in (select auth_user_households()));
 
 -- A user can CREATE a household (used in Stage 2 if you ever want a second one;
 -- the new-user trigger covers signup case server-side so this is a fallback).
@@ -125,13 +141,13 @@ create policy "households: authenticated can create" on households
   for insert with check (auth.uid() is not null);
 
 -- Only OWNERS of the household can update its row (rename, etc).
+-- This subquery has role='owner' filter — narrow path, no recursion risk.
 create policy "households: owners can update" on households
   for update using (
     id in (select household_id from household_members
            where user_id = auth.uid() and role = 'owner')
   );
 
--- Only OWNERS can delete a household.
 create policy "households: owners can delete" on households
   for delete using (
     id in (select household_id from household_members
@@ -139,12 +155,11 @@ create policy "households: owners can delete" on households
   );
 
 -- household_members ---------------------------------------------------------
--- A user can read their own membership rows AND rows for households they're in
--- (so they can see who else is in the household).
-create policy "members: read own rows or same household" on household_members
+-- Direct user_id check + helper for cross-member visibility (no recursion).
+create policy "members: read household" on household_members
   for select using (
     user_id = auth.uid()
-    or household_id in (select household_id from household_members where user_id = auth.uid())
+    or household_id in (select auth_user_households())
   );
 
 -- Self-join: a user can insert a row for themselves (used when they accept an
@@ -171,40 +186,33 @@ create policy "members: owner or self can delete" on household_members
 
 -- babies / conversations / messages / saved_cards ---------------------------
 -- Same shape: any household member can read/write their household's rows.
+-- All reference auth_user_households() to avoid the RLS recursion that bites
+-- when subquerying household_members directly.
 
 create policy "babies: household members all access" on babies
-  for all using (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  ) with check (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for all using (household_id in (select auth_user_households()))
+  with check (household_id in (select auth_user_households()));
 
 create policy "conversations: household members all access" on conversations
-  for all using (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  ) with check (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for all using (household_id in (select auth_user_households()))
+  with check (household_id in (select auth_user_households()));
 
 create policy "messages: household members all access" on messages
   for all using (
     conversation_id in (
       select id from conversations
-      where household_id in (select household_id from household_members where user_id = auth.uid())
+      where household_id in (select auth_user_households())
     )
   ) with check (
     conversation_id in (
       select id from conversations
-      where household_id in (select household_id from household_members where user_id = auth.uid())
+      where household_id in (select auth_user_households())
     )
   );
 
 create policy "saved_cards: household members all access" on saved_cards
-  for all using (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  ) with check (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for all using (household_id in (select auth_user_households()))
+  with check (household_id in (select auth_user_households()));
 
 -- ---------- AUTO-CREATE HOUSEHOLD ON SIGNUP --------------------------------
 -- SECURITY DEFINER bypasses RLS so the trigger can insert despite the user

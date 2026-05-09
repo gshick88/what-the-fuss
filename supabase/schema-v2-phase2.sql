@@ -28,14 +28,13 @@ drop policy if exists "profiles: read household members" on profiles;
 drop policy if exists "profiles: update self"            on profiles;
 
 -- A user can read profiles of anyone in any household they belong to.
+-- Uses auth_user_households() helper from schema.sql to dodge RLS recursion.
 create policy "profiles: read household members" on profiles
   for select using (
     id = auth.uid()
     or id in (
       select user_id from household_members
-      where household_id in (
-        select household_id from household_members where user_id = auth.uid()
-      )
+      where household_id in (select auth_user_households())
     )
   );
 
@@ -92,22 +91,17 @@ drop policy if exists "invites: members can delete" on invitations;
 
 -- Members of a household can see all its invitations (active + used + expired).
 create policy "invites: members can read" on invitations
-  for select using (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for select using (household_id in (select auth_user_households()));
 
 -- Members can create new invites for their household.
 create policy "invites: members can create" on invitations
   for insert with check (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-    and invited_by = auth.uid()
+    household_id in (select auth_user_households()) and invited_by = auth.uid()
   );
 
 -- Members can revoke (delete) invites for their household.
 create policy "invites: members can delete" on invitations
-  for delete using (
-    household_id in (select household_id from household_members where user_id = auth.uid())
-  );
+  for delete using (household_id in (select auth_user_households()));
 
 -- ---------- 3. ACCEPT_INVITATION RPC ---------------------------------------
 -- Server-side function called by the /auth/accept page. SECURITY DEFINER so
@@ -168,7 +162,35 @@ $$;
 -- Authenticated users can. Grant to authenticated role explicitly.
 grant execute on function accept_invitation(text) to authenticated;
 
--- ---------- 4. ENABLE REALTIME ON THE RIGHT TABLES -------------------------
+-- ---------- 4. BACKFILL: every auth user gets a household ------------------
+-- The signup trigger creates a household for every NEW user, but if any user
+-- existed before the trigger (or the trigger failed silently for any reason),
+-- they'd have no household_members row and every DB call would 'No household'.
+-- This idempotently creates one for anyone missing.
+
+do $$
+declare
+  u record;
+  new_household_id uuid;
+begin
+  for u in
+    select id, email from auth.users
+    where id not in (select user_id from household_members)
+  loop
+    insert into households (name, created_by)
+      values ('My household', u.id)
+      returning id into new_household_id;
+    insert into household_members (household_id, user_id, role)
+      values (new_household_id, u.id, 'owner');
+  end loop;
+end$$;
+
+-- Also ensure every existing auth user has a profile row.
+insert into profiles (id, email)
+  select id, email from auth.users
+  on conflict (id) do nothing;
+
+-- ---------- 5. ENABLE REALTIME ON THE RIGHT TABLES -------------------------
 -- Supabase Realtime broadcasts row changes via Postgres logical replication
 -- through a publication called `supabase_realtime`. Tables aren't included
 -- by default; we add them explicitly. RLS still applies to realtime payloads,
