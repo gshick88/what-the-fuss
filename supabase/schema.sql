@@ -113,17 +113,22 @@ $$;
 grant execute on function auth_user_households() to authenticated, anon;
 
 -- ---------- ROW-LEVEL SECURITY: POLICIES ------------------------------------
--- Drop any old policies first so this script is safely re-runnable.
+-- Drop any old policies first so this script is safely re-runnable. Includes
+-- both legacy and current policy names — anytime we rename a policy, we must
+-- list both the old and new names here.
 
 drop policy if exists "households: members can read"        on households;
 drop policy if exists "households: authenticated can create" on households;
 drop policy if exists "households: owners can update"       on households;
 drop policy if exists "households: owners can delete"       on households;
 
+-- household_members (old + current names)
 drop policy if exists "members: read own rows or same household" on household_members;
-drop policy if exists "members: insert self"                    on household_members;
-drop policy if exists "members: owner can add others"           on household_members;
-drop policy if exists "members: owner or self can delete"       on household_members;
+drop policy if exists "members: read household"                  on household_members;
+drop policy if exists "membership select"                        on household_members;
+drop policy if exists "members: insert self"                     on household_members;
+drop policy if exists "members: owner can add others"            on household_members;
+drop policy if exists "members: owner or self can delete"        on household_members;
 
 drop policy if exists "babies: household members all access"        on babies;
 drop policy if exists "conversations: household members all access" on conversations;
@@ -239,6 +244,57 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- ---------- ENSURE_HOUSEHOLD_FOR_USER (self-healing) -----------------------
+-- The signup trigger above is the *primary* path. If it ever fails to fire
+-- (Supabase has been known to move auth schema around, breaking custom
+-- triggers), users would be stuck with no household forever.
+--
+-- This RPC is the safety net the client calls on every page load: it returns
+-- the user's household_id, creating one atomically if they don't have one.
+-- SECURITY DEFINER so it can write into household_members regardless of RLS.
+--
+-- Idempotent and race-safe: if a second concurrent call arrives after the
+-- first has inserted, the second SELECT picks up the row and returns it
+-- without creating a duplicate.
+
+create or replace function ensure_household_for_user()
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  existing_hid uuid;
+  new_hid uuid;
+  uid uuid;
+begin
+  uid := auth.uid();
+  if uid is null then
+    raise exception 'Not signed in';
+  end if;
+
+  -- Fast path: existing membership.
+  select household_id into existing_hid
+    from household_members
+    where user_id = uid
+    order by joined_at asc
+    limit 1;
+  if existing_hid is not null then
+    return existing_hid;
+  end if;
+
+  -- Slow path: nothing for this user yet, create both rows.
+  insert into households (name) values ('My household')
+    returning id into new_hid;
+  insert into household_members (household_id, user_id, role)
+    values (new_hid, uid, 'owner');
+
+  return new_hid;
+end;
+$$;
+
+grant execute on function ensure_household_for_user() to authenticated;
 
 -- ---------- STORAGE: image bucket policies ---------------------------------
 -- The 'wtf-images' bucket itself is created in the Storage UI (one click).
