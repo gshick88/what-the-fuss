@@ -2,7 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Light theme (Berry Bowl) */
+/* ============================================================================
+ * 🎚️  FONT SIZE KNOBS — change numbers here, redeploy, everything resizes.
+ *
+ * To bump chat readability: increase --fs-message.
+ * To make hero headlines bigger: increase --fs-display-xl / --fs-display-lg.
+ * To affect EVERYTHING uniformly: bump --fs-base (the html/body size).
+ *
+ * After editing, save → git commit → git push → Vercel auto-deploys.
+ * ============================================================================ */
+:root {
+  /* ---- BODY / CHAT (the most important reading sizes) ----------------- */
+  --fs-message:     26px; /* chat bubble text — both yours and the AI's */
+  --fs-body:        20px; /* paragraph text in the rest of the app */
+  --fs-sub:         17px; /* subtitles, hints, secondary copy */
+  --fs-tiny:        14px; /* metadata, "joined 2d ago", footer notes */
+
+  /* ---- HEADLINES / DISPLAY -------------------------------------------- */
+  --fs-display-xl:  44px; /* hero "What's the fuss?" / "Talk it out" */
+  --fs-display-lg:  32px; /* big page intros — "Let's meet the boss" */
+  --fs-display-md:  24px; /* in-app page titles in the header */
+
+  /* ---- UI ------------------------------------------------------------- */
+  --fs-button:      22px; /* primary CTA buttons */
+  --fs-button-sm:   18px; /* secondary / inline buttons */
+  --fs-input:       22px; /* form fields, composer */
+  --fs-label:       16px; /* uppercase form labels */
+  --fs-chip:        20px; /* topic chips, segmented controls, tags */
+  --fs-chip-sub:    16px; /* the small subtitle line under topic chips */
+
+  /* ---- BASE ----------------------------------------------------------- */
+  --fs-base:        18px; /* body inherits from this */
+}
+
+/* ---------- Light theme (Berry Bowl) -------------------------------------- */
 :root {
   --wtf-bg:           #FAF5EE;
   --wtf-card:         #FFFFFF;
@@ -23,7 +56,7 @@
   --wtf-danger-soft:  #FCEBEB;
 }
 
-/* Dark theme — same brand language, inverted */
+/* ---------- Dark theme ---------------------------------------------------- */
 .dark {
   --wtf-bg:           #1A0F18;
   --wtf-card:         #261A24;
@@ -49,22 +82,32 @@ html, body {
   color: var(--wtf-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Explicit 'Dongle' first so the direct Google Fonts <link> in layout.jsx
-     takes effect even if next/font's variable doesn't resolve. */
   font-family: 'Dongle', var(--font-sans), system-ui, -apple-system, sans-serif;
   letter-spacing: 0.005em;
-  /* Bigger base — Dongle reads small at typical web sizes. */
-  font-size: 18px;
+  font-size: var(--fs-base);
 }
 
-/* Dongle has no 500 weight, only 300/400/700. Tailwind's font-medium would
-   otherwise fall back to 400 and look identical to body. Bump it to 700 — but
-   only on elements NOT using the display font (Fraunces does have a 500). */
-.font-medium:not(.font-display) {
-  font-weight: 700;
-}
+/* ---------- Reusable size classes ----------------------------------------- */
+/* Use these in JSX instead of arbitrary text-[XXpx] values. */
+.fs-message     { font-size: var(--fs-message); }
+.fs-body        { font-size: var(--fs-body); }
+.fs-sub         { font-size: var(--fs-sub); }
+.fs-tiny        { font-size: var(--fs-tiny); }
+.fs-display-xl  { font-size: var(--fs-display-xl); }
+.fs-display-lg  { font-size: var(--fs-display-lg); }
+.fs-display-md  { font-size: var(--fs-display-md); }
+.fs-button      { font-size: var(--fs-button); }
+.fs-button-sm   { font-size: var(--fs-button-sm); }
+.fs-input       { font-size: var(--fs-input); }
+.fs-label       { font-size: var(--fs-label); }
+.fs-chip        { font-size: var(--fs-chip); }
+.fs-chip-sub    { font-size: var(--fs-chip-sub); }
 
-/* Display headlines */
+/* Dongle has only 300/400/700. Tailwind's font-medium would fall back to 400
+   and look identical to body. Bump it to 700 — but only when not in display
+   font (Fraunces, which DOES have 500). */
+.font-medium:not(.font-display) { font-weight: 700; }
+
 .font-display {
   font-feature-settings: 'ss01' on, 'ss02' on;
   letter-spacing: -0.02em;
@@ -82,18 +125,25 @@ html, body {
   resize: none;
   width: 100%;
   font-family: inherit;
-  font-size: 25px;     /* big — Dongle */
+  font-size: var(--fs-input);
   color: var(--wtf-text);
 }
 .wtf-input::placeholder { color: var(--wtf-muted); }
 
-.breathe-ring {
-  animation: breathe 3s ease-in-out infinite;
-}
+.breathe-ring { animation: breathe 3s ease-in-out infinite; }
 
+/* Markdown rendering inside chat messages — uses the shared --fs-message size
+   so AI replies match the user's bubble text. */
+.msg-content { font-size: var(--fs-message); }
 .msg-content p { margin: 0 0 10px; }
 .msg-content p:last-child { margin-bottom: 0; }
 .msg-content strong { font-weight: 700; color: var(--wtf-text); }
 .msg-content ul, .msg-content ol { padding-left: 22px; margin: 6px 0 10px; }
 .msg-content li { margin: 3px 0; }
-.msg-content code { background: var(--wtf-berry-soft); color: var(--wtf-berry-dark); padding: 1px 6px; border-radius: 4px; font-size: 16px; }
+.msg-content code {
+  background: var(--wtf-berry-soft);
+  color: var(--wtf-berry-dark);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: var(--fs-sub);
+}

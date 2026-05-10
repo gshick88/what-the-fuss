@@ -37,7 +37,7 @@ export default function MessageBubble({ message, onSaved, authorLabel }) {
     return (
       <div className="self-end max-w-[85%] flex flex-col gap-1.5 items-end animate-slide-up">
         {authorLabel && authorLabel !== 'you' && (
-          <div className="text-[14px] text-wtf-text-3 px-1">{authorLabel} asked</div>
+          <div className="fs-tiny text-wtf-text-3 px-1">{authorLabel} asked</div>
         )}
         {message.image?.url && (
           <div className="bg-wtf-berry rounded-wtf-lg p-1">
@@ -45,7 +45,7 @@ export default function MessageBubble({ message, onSaved, authorLabel }) {
           </div>
         )}
         {message.content && (
-          <div className="bg-wtf-berry text-white px-3.5 py-2.5 rounded-wtf-lg rounded-br-[4px] text-[22px] leading-snug whitespace-pre-wrap">
+          <div className="bg-wtf-berry text-white px-3.5 py-2.5 rounded-wtf-lg rounded-br-[4px] fs-message leading-snug whitespace-pre-wrap">
             {message.content}
           </div>
         )}
@@ -73,18 +73,18 @@ export default function MessageBubble({ message, onSaved, authorLabel }) {
 
   return (
     <div className="self-start max-w-[92%] animate-slide-up">
-      <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-4 py-3 text-[22px] leading-relaxed text-wtf-text msg-content">
+      <div className="bg-white border border-wtf-border rounded-wtf-lg rounded-bl-[4px] px-4 py-3 leading-relaxed text-wtf-text msg-content">
         {renderMarkdown(message.content)}
       </div>
       <div className="mt-2 flex gap-1.5 flex-wrap items-center">
         <button
           onClick={handleSave}
           disabled={saved}
-          className={`text-[16px] px-3 py-1 rounded-full font-medium transition-colors ${saved ? 'bg-wtf-sage-soft text-[#3B6D11]' : 'bg-wtf-berry-soft text-wtf-berry-dark hover:bg-wtf-berry-soft/80'}`}
+          className={`fs-sub px-3 py-1 rounded-full font-medium transition-colors ${saved ? 'bg-wtf-sage-soft text-[#3B6D11]' : 'bg-wtf-berry-soft text-wtf-berry-dark hover:bg-wtf-berry-soft/80'}`}
         >
           {saved ? 'Saved' : 'Save card'}
         </button>
-        {savingErr && <span className="text-[14px] text-wtf-danger">{savingErr}</span>}
+        {savingErr && <span className="fs-tiny text-wtf-danger">{savingErr}</span>}
       </div>
     </div>
   );

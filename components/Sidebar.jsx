@@ -86,12 +86,16 @@ export default function Sidebar({ open, onClose }) {
 
           <button
             onClick={toggleTheme}
-            className="mt-2 flex items-center justify-between text-[22px] text-wtf-text px-2 py-2.5 rounded-md hover:bg-wtf-card/60"
+            className="mt-2 flex items-center justify-between fs-body text-wtf-text px-2 py-2.5 rounded-md hover:bg-wtf-card/60"
           >
             <span>Dark mode</span>
-            <span className={`relative w-12 h-7 rounded-full transition-colors ${theme === 'dark' ? 'bg-wtf-berry' : 'bg-wtf-border'}`}>
+            {/* Toggle: track 56x32, dot 24x24, padding 4px each side.
+                OFF → dot at left:4 (translate-x-0).
+                ON  → dot at left:28 (translate-x-6 = 24px).
+                Both positions sit cleanly inside the track with 4px clearance. */}
+            <span className={`relative inline-block w-14 h-8 rounded-full transition-colors ${theme === 'dark' ? 'bg-wtf-berry' : 'bg-wtf-border'}`}>
               <span
-                className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-[26px]' : 'translate-x-1'}`}
+                className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`}
               />
             </span>
           </button>

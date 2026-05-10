@@ -4,6 +4,7 @@ export default {
   content: [
     './app/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
+    './lib/**/*.{js,jsx}', // topic.js holds class strings — Tailwind needs to see them
   ],
   theme: {
     extend: {
